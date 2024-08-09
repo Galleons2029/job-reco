@@ -48,7 +48,7 @@ class BaseDocument(BaseModel):
             result = collection.insert_one(self.to_mongo(**kwargs))
             return result.inserted_id
         except errors.WriteError:
-            logger.exception("Failed to insert document.")
+            logger.exception("文档插入失败。")
 
             return None
 
@@ -63,7 +63,7 @@ class BaseDocument(BaseModel):
             new_instance = new_instance.save()
             return new_instance
         except errors.OperationFailure:
-            logger.exception("Failed to retrieve or create document.")
+            logger.exception("文档创建或者检索失败。")
 
             return None
 
@@ -76,7 +76,7 @@ class BaseDocument(BaseModel):
             )
             return result.inserted_ids
         except errors.WriteError:
-            logger.exception("Failed to insert documents.")
+            logger.exception("文档插入失败。")
 
             return None
 
