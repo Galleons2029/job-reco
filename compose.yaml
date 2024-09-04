@@ -1,0 +1,57 @@
+version: '3.8'
+services:
+  mongo1:
+    image: mongo:latest
+    container_name: mongo1
+    ports:
+      - 30001:27017
+    volumes:
+      - ./mongo-keyfile:/opt/keyfile:ro
+      - mongo1data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    command: --replSet rs0 --bind_ip_all --keyFile /opt/keyfile --auth
+    networks:
+      - mongo_cluster
+
+  mongo2:
+    image: mongo:latest
+    container_name: mongo2
+    ports:
+      - 30002:27017
+    volumes:
+      - ./mongo-keyfile:/opt/keyfile:ro
+      - mongo2data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    command: --replSet rs0 --bind_ip_all --keyFile /opt/keyfile --auth
+    networks:
+      - mongo_cluster
+
+  mongo3:
+    image: mongo:latest
+    container_name: mongo3
+    ports:
+      - 30003:27017
+    volumes:
+      - ./mongo-keyfile:/opt/keyfile:ro
+      - mongo3data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    command: --replSet rs0 --bind_ip_all --keyFile /opt/keyfile --auth
+    networks:
+      - mongo_cluster
+
+volumes:
+  mongo1data:
+  mongo2data:
+  mongo3data:
+
+networks:
+  mongo_cluster:
+    driver: bridge
+
+
