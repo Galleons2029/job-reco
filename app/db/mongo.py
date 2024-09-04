@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
-from config import settings
+from app.config import settings
 
 
 class MongoDatabaseConnector:
@@ -18,7 +18,7 @@ class MongoDatabaseConnector:
                 raise
 
         print(
-            f"成功连接至数据库: {settings.MONGO_DATABASE_HOST} "
+            f"连接至数据库: {settings.MONGO_DATABASE_HOST} "
         )
         return cls._instance
 

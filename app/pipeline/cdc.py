@@ -4,8 +4,12 @@ import logging
 from bson import json_util
 from mq import publish_to_rabbitmq
 
-from config import settings
-from db.mongo import MongoDatabaseConnector
+import sys
+import os
+
+from app.config import settings
+from app.db.mongo import MongoDatabaseConnector
+
 
 # 登录设置
 logging.basicConfig(
