@@ -22,7 +22,7 @@ def stream_process():
         # 建立 MongoDB 连接
         client = MongoDatabaseConnector()
         db = client["scrabble"]
-        logging.info("Connected to MongoDB.")
+        logging.info("连接至 MongoDB.")
 
         # 对指定集合进行监视
         changes = db.watch([{"$match": {"operationType": {"$in": ["insert"]}}}])
@@ -35,7 +35,7 @@ def stream_process():
 
             # 用 json_util 对文档进行序列化
             data = json.dumps(change["fullDocument"], default=json_util.default)
-            logging.info(f"Change detected and serialized: {data}")
+            logging.info(f"检测到变更并进行序列化: {data}")
 
             # 将数据发送至 rabbitmq
             publish_to_rabbitmq(queue_name=settings.RABBITMQ_QUEUE_NAME, data=data)

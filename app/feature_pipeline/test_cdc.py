@@ -1,9 +1,10 @@
 from pymongo import MongoClient
+from app.config import settings
 
 
 def insert_data_to_mongodb(uri, database_name, collection_name, data):
     """
-    Insert data into a MongoDB collection.
+    将数据导入Mongodb集合中.
 
     :param uri: MongoDB URI
     :param database_name: Name of the database
@@ -25,7 +26,7 @@ def insert_data_to_mongodb(uri, database_name, collection_name, data):
 
 if __name__ == "__main__":
     insert_data_to_mongodb(
-        "mongodb+srv://galleons777:galleons@cluster0.b1w6ev1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+        settings.MONGO_DATABASE_HOST,
         "scrabble",
         "posts",
         {"platform": "linkedin", "content": "Test content"}
