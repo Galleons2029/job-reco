@@ -13,9 +13,9 @@ class Settings(BaseSettings):
     LINKEDIN_PASSWORD: str | None = None
 
     # CometML config
-    COMET_API_KEY: str | None = None
-    COMET_WORKSPACE: str | None = None
-    COMET_PROJECT: str | None = None
+    COMET_API_KEY: str | None = "l0vgJvULBTl8tJfYg6LDG90BV"
+    COMET_WORKSPACE: str | None = "galleons2029"
+    COMET_PROJECT: str | None = "general"
 
     # Embeddings config （待修改）
     EMBEDDING_MODEL_ID: str = "sentence-transformers/all-MiniLM-L6-v2"
@@ -42,5 +42,14 @@ class Settings(BaseSettings):
     USE_QDRANT_CLOUD: bool = False
     QDRANT_APIKEY: str | None = None
 
+    # LLM Model config
+    TOKENIZERS_PARALLELISM: str = "false"
+    HUGGINGFACE_ACCESS_TOKEN: str | None = None
+    MODEL_TYPE: str = "mistralai/Mistral-7B-Instruct-v0.1"
+
+    QWAK_DEPLOYMENT_MODEL_ID: str = "copywriter_model"
+    QWAK_DEPLOYMENT_MODEL_API: str = (
+        "https://models.llm-twin.qwak.ai/v1/copywriter_model/default/predict"
+    )
 
 settings = Settings()

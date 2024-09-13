@@ -20,7 +20,7 @@ class BaseDocument(BaseModel):
 
     @classmethod
     def from_mongo(cls, data: dict):
-        """Convert "_id" (str object) into "id" (UUID object)."""
+        """将 "_id" (str object) 转换为 "id" (UUID object)."""
         if not data:
             return data
 
@@ -28,7 +28,7 @@ class BaseDocument(BaseModel):
         return cls(**dict(data, id=id))
 
     def to_mongo(self, **kwargs) -> dict:
-        """Convert "id" (UUID object) into "_id" (str object)."""
+        """将 "id" (UUID object) 转换为 "_id" (str object)."""
         exclude_unset = kwargs.pop("exclude_unset", False)
         by_alias = kwargs.pop("by_alias", True)
 

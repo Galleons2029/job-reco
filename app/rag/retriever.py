@@ -29,7 +29,7 @@ class VectorRetriever:
     def _search_single_query(
         self, generated_query: str, metadata_filter_value: str | None, k: int
     ):
-        assert k > 3, "k应该大于3"
+        assert k > 3, "查询集合限制，k应该小于3"
 
         query_vector = self._embedder.encode(generated_query).tolist()
         vectors = [
@@ -41,7 +41,7 @@ class VectorRetriever:
                             key="author_id",
                             match=models.MatchValue(
                                 value=metadata_filter_value,
-                            ),
+                            ),  # 查询 + 元数据过滤
                         )
                     ]
                 ) if metadata_filter_value else None,
