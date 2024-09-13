@@ -16,3 +16,7 @@ instructorembedding~=1.0.1
 sentence-transformers~=3.0.1
 unstructured~=0.15.9
 langchain-openai~=0.1.23
+pandas~=2.2.2
+python-dotenv~=1.0.1
+litserve~=0.2.2
+llama-index-core~=0.11.8
