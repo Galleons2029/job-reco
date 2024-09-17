@@ -1,3 +1,10 @@
+"""
+为了构建调度程序需要的两个组件：
+
+工厂类：根据事件类型实例化正确的处理程序
+调度程序类：调用工厂类和处理程序的粘合代码
+"""
+
 from app.utils.logging import get_logger
 
 from app.feature_pipeline.data_logic.chunking_data_handlers import (

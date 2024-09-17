@@ -85,7 +85,7 @@ class QdrantOutput(DynamicSink):
                 collection_name="vector_repositories"
             )
 
-    # 为每一个Bytewax工作期创建一个数据接收器
+    # 为每一个Bytewax工作器创建一个数据接收器
     def build(self, worker_index: int, worker_count: int) -> StatelessSinkPartition:
         if self._sink_type == "clean":
             return QdrantCleanedDataSink(connection=self._connection)
@@ -98,6 +98,7 @@ class QdrantOutput(DynamicSink):
 class QdrantCleanedDataSink(StatelessSinkPartition):
     """
     自定义无状态工作器/分区
+    继承Bytewax中的无服务分区（StatelessSinkPartition）
     """
 
     def __init__(self, connection: QdrantDatabaseConnector):

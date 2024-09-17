@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     MONGO_DATABASE_HOST: str = "mongodb://root:weyon%40mongodb@192.168.15.79:27017,192.168.15.79:27018,192.168.15.79:27019/?replicaSet=app"
 #    MONGO_DATABASE_HOST: str = "mongodb+srv://galleons777:galleons@cluster0.b1w6ev1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
     MONGO_DATABASE_NAME: str = "admin"
+    MONGO_DATABASE_API_PORT: int = 27016
 
     LINKEDIN_USERNAME: str | None = None
     LINKEDIN_PASSWORD: str | None = None
