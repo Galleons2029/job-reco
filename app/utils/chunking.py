@@ -11,8 +11,8 @@ def chunk_text(text: str) -> list[str]:
     1. 将文本划分为段落
     2. 将字符大于500的段落划分为更小的分块
     3. 保证分块间没有重叠
-    :param text:
-    :return:
+    :param text: 需要切分的文本
+    :return: 包含切分文本分块的列表
     """
     character_splitter = RecursiveCharacterTextSplitter(
         separators=["\n\n"],
