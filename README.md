@@ -6,13 +6,23 @@
 
 ```coffeescript
 .
-├── app             # 项目代码
-│   ├── agent_HR    # HR端
-│   ├── crawler     # 爬虫
-│   ├── db          # 数据库
-│   └── pipeline    # 数据处理
-└── tests           # 测试目录
-
+├── app                   # 项目代码
+│   ├── agent_HR              # HR智能体（待启动）
+│   ├── crawler               # 自动化爬虫平台（待启动）
+│   ├── db                    # 数据库组件
+│   ├── evaluation            # 用于评估模型性能
+│   └── feature_pipeline      # 特征管道，用于将Mongodb与Qdrant通过RabbitMQ进行同步
+│       ├── data_flow            # 流式管道构建
+│       ├── data_logic           # 特征数据提取
+│       └── models               # 特征数据类建模
+│   ├── llm                   # 模型加载库
+│   ├── monitoring            # 模型监控组件
+│   ├── rag                   # RAG文档检索库，用于构建llm与知识库的连接
+│   ├── scripts               # 管道运行脚本
+│   └── utils                 # 工具组件，用于数据清洗、文档切分、嵌入等作用
+│
+└── tests                 # 测试目录
+│   └── docs              # 测试文档
 ```
 
 ## 快速开始
