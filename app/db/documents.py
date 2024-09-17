@@ -1,3 +1,11 @@
+"""
+documents.py模块是与 MongoDB 交互的基础框架。
+我们的数据建模以创建特定文档类为中心——UserDocument 、 RepositoryDocument 、 PostDocument和ArticleDocument
+这些反映了 MongoDB 集合的结构。
+这些类定义了存储的每种数据类型的模式，例如用户详细信息、存储库元数据、帖子内容和文章信息。
+通过使用这些类可以确保插入数据库的数据是一致的、有效的，并且易于检索以进行进一步的操作。
+"""
+
 import uuid
 from typing import List, Optional
 
@@ -28,7 +36,7 @@ class BaseDocument(BaseModel):
         return cls(**dict(data, id=id))
 
     def to_mongo(self, **kwargs) -> dict:
-        """将 "id" (UUID object) 转换为 "_id" (str object)."""
+        """将 "id" (UUID object) 转换为 "_id" (str object)，使得模型实例转换为 MongoDB 友好格式。"""
         exclude_unset = kwargs.pop("exclude_unset", False)
         by_alias = kwargs.pop("by_alias", True)
 
@@ -42,6 +50,7 @@ class BaseDocument(BaseModel):
         return parsed
 
     def save(self, **kwargs):
+        """使用 PyMongo中insert_one添加文档，并返回 MongoDB 的确认作为插入的 ID。"""
         collection = _database[self._get_collection_name()]
 
         try:
@@ -54,6 +63,7 @@ class BaseDocument(BaseModel):
 
     @classmethod
     def get_or_create(cls, **filter_options) -> Optional[str]:
+        """获取现有文档或创建新文档，确保无缝数据更新。"""
         collection = _database[cls._get_collection_name()]
         try:
             instance = collection.find_one(filter_options)
@@ -69,6 +79,7 @@ class BaseDocument(BaseModel):
 
     @classmethod
     def bulk_insert(cls, documents: List, **kwargs) -> Optional[List[str]]:
+        """用insert_many添加多个文档并返回其 ID。"""
         collection = _database[cls._get_collection_name()]
         try:
             result = collection.insert_many(
@@ -89,6 +100,8 @@ class BaseDocument(BaseModel):
 
         return cls.Settings.name
 
+
+# 使用 Pydantic 模型，每个类确保数据在输入数据库之前正确构造和验证。
 
 class UserDocument(BaseDocument):
     first_name: str
