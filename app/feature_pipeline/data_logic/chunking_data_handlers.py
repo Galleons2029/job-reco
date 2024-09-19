@@ -6,6 +6,10 @@ from app.feature_pipeline.models.chunk import ArticleChunkModel, PostChunkModel,
 from app.feature_pipeline.models.clean import ArticleCleanedModel, PostCleanedModel, RepositoryCleanedModel
 from app.utils.chunking import chunk_text
 
+from app.utils.logging import get_logger
+logger = get_logger(__name__)
+
+
 class ChunkingDataHandler(ABC):
     """
     所有分块数据处理程序的抽象类。
@@ -22,7 +26,9 @@ class PostChunkingHandler(ChunkingDataHandler):
         data_models_list = []
 
         text_content = data_model.cleaned_content
+        logger.debug(f"对清洗好的数据进行切分: {text_content}")
         chunks = chunk_text(text_content)
+        logger.debug(f"切片为: {chunks}")
 
         for chunk in chunks:
             model = PostChunkModel(

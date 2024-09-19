@@ -25,7 +25,7 @@ class RabbitMQPartition(StatefulSourcePartition, Generic[DataT, MessageT]):
         self.connection.connect()
         self.channel = self.connection.get_channel()
 
-    def next_batch(self, sched: Optional[datetime]) -> Iterable[DataT]:
+    def next_batch(self, sched: Optional[datetime] = None) -> Iterable[DataT]:
         try:
             method_frame, header_frame, body = self.channel.basic_get(
                 queue=self.queue_name, auto_ack=True
@@ -34,7 +34,7 @@ class RabbitMQPartition(StatefulSourcePartition, Generic[DataT, MessageT]):
             logger.error(
                 f"从队列获取消息时出错。", queue_name=self.queue_name
             )
-            time.sleep(10)  # 在重试访问队列之前睡眠 10 秒。
+            time.sleep(5)  # 在重试访问队列之前睡眠 5 秒。
 
             self.connection.connect()
             self.channel = self.connection.get_channel()

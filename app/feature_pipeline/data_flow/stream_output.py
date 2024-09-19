@@ -86,7 +86,7 @@ class QdrantOutput(DynamicSink):
             )
 
     # 为每一个Bytewax工作器创建一个数据接收器
-    def build(self, worker_index: int, worker_count: int) -> StatelessSinkPartition:
+    def build(self, step_id: str, worker_index: int, worker_count: int) -> StatelessSinkPartition:
         if self._sink_type == "clean":
             return QdrantCleanedDataSink(connection=self._connection)
         elif self._sink_type == "vector":

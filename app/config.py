@@ -21,11 +21,11 @@ class Settings(BaseSettings):
     # Embeddings config （待修改）
     EMBEDDING_MODEL_ID: str = "sentence-transformers/all-MiniLM-L6-v2"
     EMBEDDING_MODEL_MAX_INPUT_LENGTH: int = 256
-    EMBEDDING_SIZE: int = 384
-    EMBEDDING_MODEL_DEVICE: str = "cpu"
+    EMBEDDING_SIZE: int = 512
+    EMBEDDING_MODEL_DEVICE: str = "gpu"
 
     # 预设 OpenAI （待修改）
-    OPENAI_MODEL_ID: str = "gpt-4-1106-preview"
+    OPENAI_MODEL_ID: str = "qwen2-pro"
     OPENAI_API_KEY: str | None = None
 
     # MQ config

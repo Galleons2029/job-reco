@@ -8,7 +8,7 @@ class PostChunkModel(DataModel):
     platform: str
     chunk_id: str
     chunk_content: str
-    author_id: str
+    author_id: str | None = None
     image: Optional[str] = None
     type: str
 
@@ -19,7 +19,7 @@ class ArticleChunkModel(DataModel):
     link: str
     chunk_id: str
     chunk_content: str
-    author_id: str
+    author_id: str | None = None
     type: str
 
 

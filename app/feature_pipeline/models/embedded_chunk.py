@@ -11,7 +11,7 @@ class PostEmbeddedChunkModel(VectorDBDataModel):
     chunk_id: str
     chunk_content: str
     embedded_content: np.ndarray
-    author_id: str
+    author_id: str | None = None
     type: str
 
     class Config:
