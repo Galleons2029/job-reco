@@ -18,11 +18,13 @@ connection = QdrantDatabaseConnector()
 flow = Dataflow("流式摄取管道")   # 初始化管道流
 stream = op.input("输入", flow, RabbitMQSource()) # 从队列中读取数据
 
-stream = op.map("原始调度", stream,
+stream = op.map("原始调度",
+                stream,
                 RawDispatcher.handle_mq_message
 )   # 将JSON映射为Pydantic模式
 
-stream = op.map("清理调度", stream,
+stream = op.map("清理调度",
+                stream,
                 CleaningDispatcher.dispatch_cleaner
 )   # 数据清洗
 
@@ -32,7 +34,8 @@ op.output(
     QdrantOutput(connection=connection, sink_type="clean"),
 )
 
-stream = op.flat_map("分块调度", stream,
+stream = op.flat_map("分块调度",
+                     stream,
                      ChunkingDispatcher.dispatch_chunker
 )
 

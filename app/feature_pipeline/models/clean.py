@@ -7,7 +7,7 @@ class PostCleanedModel(VectorDBDataModel):
     entry_id: str
     platform: str
     cleaned_content: str
-    author_id: str
+    author_id: str | None = None
     image: Optional[str] = None
     type: str
 
