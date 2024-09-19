@@ -49,7 +49,6 @@ def chunk_text(text: str) -> list[str]:
         chunk_size=256,
         chunk_overlap=50,
     )
-
     chunks = []
 
     for section in text_split:
