@@ -4,10 +4,11 @@ from app.utils.logging import get_logger
 import app.utils
 from app.db.qdran import QdrantDatabaseConnector
 from qdrant_client import models
-from app.rag.query_expanison import QueryExpansion
+from app.rag.query_expansion import QueryExpansion
 from app.rag.reranking import Reranker
 from app.rag.self_query import SelfQuery
-from sentence_transformers.SentenceTransformer import SentenceTransformer
+#from sentence_transformers.SentenceTransformer import SentenceTransformer
+from app.utils.embeddings import embed_model
 from app.config import settings
 
 logger = get_logger(__name__)
@@ -21,17 +22,18 @@ class VectorRetriever:
     def __init__(self, query: str) -> None:
         self._client = QdrantDatabaseConnector()
         self.query = query
-        self._embedder = SentenceTransformer(settings.EMBEDDING_MODEL_ID)
+        #self._embedder = SentenceTransformer(settings.EMBEDDING_MODEL_ID)
+        self._embedder = embed_model
         self._query_expander = QueryExpansion()
         self._metadata_extractor = SelfQuery()
         self._reranker = Reranker()
 
     def _search_single_query(
-        self, generated_query: str, metadata_filter_value: str | None, k: int
+        self, generated_query: str, metadata_filter_value: str | None, k: int = 3
     ):
         assert k > 3, "查询集合限制，k应该小于3"
 
-        query_vector = self._embedder.encode(generated_query).tolist()
+        query_vector = self._embedder.create_embedding(generated_query)['data'][0]['embedding']    #.tolist()
         vectors = [
             self._client.search(
                 collection_name="vector_posts",
@@ -44,7 +46,7 @@ class VectorRetriever:
                             ),  # 查询 + 元数据过滤
                         )
                     ]
-                ) if metadata_filter_value else None,
+                ) if metadata_filter_value else None,   # 若为None则不进行过滤
                 query_vector=query_vector,
                 limit=k // 3,
             ),
@@ -82,7 +84,7 @@ class VectorRetriever:
 
         return app.utils.flatten(vectors)
 
-    def retrieve_top_k(self, k: int, to_expand_to_n_queries: int) -> list:
+    def retrieve_top_k(self, k: int, to_expand_to_n_queries: int = 3) -> list:
         # 生成多重查询
         generated_queries = self._query_expander.generate_response(
             self.query, to_expand_to_n=to_expand_to_n_queries

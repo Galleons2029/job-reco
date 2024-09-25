@@ -20,3 +20,6 @@ if __name__ == "__main__":
     reranked_hits = retriever.rerank(hits=hits, keep_top_k=5)
     for rank, hit in enumerate(reranked_hits):
         logger.info(f"{rank}: {hit}")
+
+    print(reranked_hits)
+    print(type(reranked_hits))

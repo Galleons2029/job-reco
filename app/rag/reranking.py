@@ -13,7 +13,12 @@ class Reranker:
         reranking_template = RerankingTemplate()
         prompt_template = reranking_template.create_template(keep_top_k=keep_top_k)
 
-        model = ChatOpenAI(model=settings.OPENAI_MODEL_ID)
+        model = ChatOpenAI(
+            model=settings.Silicon_model_v1,
+            openai_api_key=settings.Silicon_api_key1,
+            openai_api_base=settings.Silicon_base_url,
+            temperature=0
+        )
         chain = GeneralChain().get_chain(
             llm=model, output_key="rerank", template=prompt_template
         )

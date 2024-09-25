@@ -101,9 +101,7 @@ class CleaningDispatcher:
             data_type=data_type,
             cleaned_content_len=len(clean_model.cleaned_content),
         )
-
-
-        logger.debug(f"清理后的 DataModel: {clean_model}")
+        #logger.debug(f"清理后的 DataModel: {clean_model}")
 
         return clean_model
 
@@ -172,6 +170,6 @@ class EmbeddingDispatcher:
             data_type=data_type,
             embedding_len=len(embedded_chunk_model.embedded_content),
         )
-        logger.debug(f"嵌入后的 DataModel: {embedded_chunk_model}")
+        #logger.debug(f"嵌入后的 DataModel: {embedded_chunk_model}")
 
         return embedded_chunk_model
