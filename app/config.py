@@ -10,21 +10,26 @@ class Settings(BaseSettings):
     MONGO_DATABASE_NAME: str = "admin"
     MONGO_DATABASE_API_PORT: int = 27016
 
-    LINKEDIN_USERNAME: str | None = None
-    LINKEDIN_PASSWORD: str | None = None
+    # 硅基流动API
+    Silicon_api_key1: str | None = "sk-gxijztovbtakciuwjwwqyaoxarjfvhuargxkoawhuzsanssm"
+    Silicon_api_key2: str | None = "sk-kutnkphezarrglswegiqwwaywqqwkvanwjobmwmdjututqkf"
+    Silicon_api_key3: str | None = "sk-orbrjhjcqmgezlurbvsmfxqmnjwkmjdrypwdiwvyfarkbnag"
+    Silicon_base_url: str | None = "https://api.siliconflow.cn/v1"
+    Silicon_model_v1: str | None = "Qwen/Qwen2-72B-Instruct"
 
     # CometML config
     COMET_API_KEY: str | None = "l0vgJvULBTl8tJfYg6LDG90BV"
     COMET_WORKSPACE: str | None = "galleons2029"
     COMET_PROJECT: str | None = "general"
 
-    # Embeddings config （待修改）
-    EMBEDDING_MODEL_ID: str = "sentence-transformers/all-MiniLM-L6-v2"
+    # Embeddings config
+    #EMBEDDING_MODEL_ID: str = "sentence-transformers/all-MiniLM-L6-v2"
+    EMBEDDING_MODEL_ID: str = "bge-small-zh-v1.5"
     EMBEDDING_MODEL_MAX_INPUT_LENGTH: int = 256
     EMBEDDING_SIZE: int = 512
     EMBEDDING_MODEL_DEVICE: str = "gpu"
 
-    # 预设 OpenAI （待修改）
+    # 预设（待修改）
     OPENAI_MODEL_ID: str = "qwen2-pro"
     OPENAI_API_KEY: str | None = None
 
@@ -46,7 +51,13 @@ class Settings(BaseSettings):
     # LLM Model config
     TOKENIZERS_PARALLELISM: str = "false"
     HUGGINGFACE_ACCESS_TOKEN: str | None = None
-    MODEL_TYPE: str = "mistralai/Mistral-7B-Instruct-v0.1"
+    MODEL_TYPE: str = "Qwen/Qwen2-72B-Instruct"
+
+    # RAG config
+    TOP_K: int = 5
+    KEEP_TOP_K: int = 5
+    EXPAND_N_QUERY: int = 5
+
 
     QWAK_DEPLOYMENT_MODEL_ID: str = "copywriter_model"
     QWAK_DEPLOYMENT_MODEL_API: str = (

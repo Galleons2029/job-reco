@@ -164,3 +164,5 @@ cython_debug/
 
 pipline/demo.py
 pipline/db_debug.py
+
+*.ipynb

@@ -5,7 +5,9 @@
 
 """
 由于语言模型有token限制使得输入不能超过这个token限制。
-所以当将文本分割成块时，最好先计算token的数量。有很多token标记器。当计算文本中的token数量时，应该使用与语言模型中相同的token标记器。
+所以当将文本分割成块时，最好先计算token的数量。有很多token标记器。
+当计算文本中的token数量时，应该使用与语言模型中相同的token标记器。
+文档详见：https://python.langchain.com/docs/how_to/split_by_token/
 """
 
 from langchain.text_splitter import (
@@ -43,7 +45,7 @@ def chunk_text(text: str) -> list[str]:
     #
     # for section in text_split:
     #     chunks.extend(token_splitter.split_text(section))
-
+    # TODO：查看tiktoken源码改用与嵌入模型适配的token标记器
     retext_splitter = RecursiveCharacterTextSplitter.from_tiktoken_encoder(
         model_name="gpt-4",
         chunk_size=256,

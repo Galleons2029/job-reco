@@ -11,8 +11,11 @@ from qwak_inference import RealTimeClient
 from app.rag.retriever import VectorRetriever
 from app.config import settings
 
+from app.utils.logging import get_logger
+logger = get_logger(__name__)
 
-class LLMTwin:
+
+class WEYON_LLM:
     def __init__(self) -> None:
         self.qwak_client = RealTimeClient(
             model_id=settings.QWAK_DEPLOYMENT_MODEL_ID,
@@ -38,7 +41,7 @@ class LLMTwin:
             hits = retriever.retrieve_top_k(
                 k=settings.TOP_K, to_expand_to_n_queries=settings.EXPAND_N_QUERY
             )
-            context = retriever.rerank(hits=hits, keep_top_k=settings.KEEP_TOP_K)
+            context = retriever.rerank(hits=hits, keep_top_k=settings.KEEP_TOP_K)  # list
             prompt_template_variables["context"] = context
 
             prompt = prompt_template.format(question=query, context=context)
@@ -46,6 +49,8 @@ class LLMTwin:
             prompt = prompt_template.format(question=query)
 
         input_ = pd.DataFrame([{"instruction": prompt}]).to_json()
+
+
 
         response: list[dict] = self.qwak_client.predict(input_)
         answer = response[0]["content"][0]

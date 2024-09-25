@@ -8,7 +8,12 @@ class SelfQuery:
     @staticmethod
     def generate_response(query: str) -> str | None:
         prompt = SelfQueryTemplate().create_template()
-        model = ChatOpenAI(model=settings.OPENAI_MODEL_ID, temperature=0)
+        model = ChatOpenAI(
+            model=settings.Silicon_model_v1,
+            openai_api_key=settings.Silicon_api_key1,
+            openai_api_base=settings.Silicon_base_url,
+            temperature=0
+        )
 
         chain = GeneralChain().get_chain(
             llm=model, output_key="metadata_filter_value", template=prompt

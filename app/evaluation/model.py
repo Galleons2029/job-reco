@@ -9,7 +9,7 @@ def evaluate(query: str, output: str) -> str:
     evaluation_template = LLMEvaluationTemplate()
     prompt_template = evaluation_template.create_template()
 
-    model = ChatOpenAI(model=settings.OPENAI_MODEL_ID, api_key=settings.OPENAI_API_KEY)
+    model = ChatOpenAI(model=settings.Silicon_model_v1,openai_api_key=settings.Silicon_api_key1,openai_api_base=settings.Silicon_base_url,temperature=0)
     chain = GeneralChain.get_chain(
         llm=model, output_key="evaluation", template=prompt_template
     )
