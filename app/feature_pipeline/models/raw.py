@@ -28,6 +28,7 @@ class JobsRawModel(DataModel):
     name: str
     category: str
 
+
     platform: str
     content: dict
 
