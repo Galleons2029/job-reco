@@ -44,8 +44,8 @@ mini1 = ChatOpenAI(model="qwen2-mini1",openai_api_key='empty',openai_api_base="h
 mini2 = ChatOpenAI(model="qwen2-mini2",openai_api_key='empty',openai_api_base="http://192.168.100.111:8012/v1",temperature=0)
 
 
-def demo(dic: dict):
-    collections = ['job_name', 'cities_name', 'attribute', 'education', 'welfare']
+def match_item(dic: dict):
+    collections = ['job_name', 'cities_name', 'education_levels', 'attribute', 'welfare']
     queries = [dic['职位名称'], dic['工作城市'], dic['学历要求'], dic['工作性质'], dic['薪酬福利']]
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -62,7 +62,7 @@ def demo(dic: dict):
 
     return [dic] + hits
 
-table_chain = (ChatPromptTemplate.from_template(prompts.job_item_fill)| mini1 | JsonOutputParser() | demo )
+table_chain = (ChatPromptTemplate.from_template(prompts.job_item_fill)| mini1 | JsonOutputParser() | match_item )
 text_chain = (ChatPromptTemplate.from_template(prompts.job_item_write) | mini2 | JsonOutputParser())
 map_chain = RunnableParallel(table=table_chain, text=text_chain)
 
