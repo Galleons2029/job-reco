@@ -1,8 +1,11 @@
 from typing import Optional, List
+from datetime import datetime
 from pydantic import ConfigDict, BaseModel, Field, EmailStr
 from pydantic.functional_validators import BeforeValidator
 from typing_extensions import Annotated
 from bson import ObjectId
+from uuid import uuid4
+
 
 # 表示数据库中的 ObjectId 字段。
 # 它将在模型中表示为 `str`，以便可以序列化为 JSON。
@@ -180,7 +183,7 @@ class Job2StudentModel(BaseModel):
     second_category: str = Field(...)
     cities: str = Field(...)
     desire_salary: str = Field(...)
-    reason: Optional[str] = None
+    reason: str | None = None
     # about_major: str = Field(...)
     # number: int = Field(..., gt=0)
     # tempt: str = Field(...)
@@ -224,6 +227,121 @@ class Major2StudentModel(BaseModel):
     # desire_salary: str = Field(...)
     major: str = Field(...)
 
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
+class Jobs(BaseModel):
+    """
+    单个岗位对象
+    """
+    id : str = Field(default_factory=lambda: uuid4().hex,)
+    publish_id : str = Field(frozen=True)       # 职位id(不可更改）
+    company_id : str = Field(...)               # 企业id
+    m_company_id : str = Field(...)             # 合并后的单位ID
+    company_name : str = Field(default="未知")   # 企业名称
+    job_id : str = Field(...)
+    end_time : datetime = None                  # 职位过期时间
+    is_practice : int = 0                       # 是否实习 0：校招 1：实习 2：社招
+    is_zpj_job : str = Field(...)               # 招聘节职位
+    apply_count : int = Field(ge=0)             # 收到多少份简历
+    job_name : str = Field(...)                 # 职位名称
+    edu_category : str | None = None            # 教育部职位分类
+    category : str = Field(...)                 # 职位类别
+    category_id : str = Field(...)              # 职位类别ID
+    parent_category : str = Field(...)          # 父级职位类别
+    parent_category_id : str = Field(...)       # 父级职位类别ID
+    second_category : str = Field(...)          # 二级职位分类
+    second_category_id : str = Field(...)       # 二级职位分类ID
+    category_teacher_type : str | None = None   # 教师子类别
+    job_number : int = Field(ge=0)              # 招聘人数
+    job_status : int = Field(...)               # 1招聘中，0已结束，-1屏蔽
+    job_require : str = Field(...)              # 职位要求
+    job_descript : str = Field(...)             # 职位描述，前端还用来区分新旧职位
+    salary : str | None = None                  # 年薪，为空直接是面议
+    salary_min : int = Field(ge=0)              # 薪资范围 - 最少
+    salary_max : int = Field(le=1000000)        # 薪资范围 - 最多
+    contact_tel : str = Field(default="未提供")  # 联系电话手机或者座机
+    city_name : str = Field(default="未知")      # 工作城市
+    work_address : str = Field(default="未知")   # 工作地点
+    keywords : str | None = None                # 关键字 空格分开
+    welfare : str | None = None                 # 薪酬福利
+    intro_apply : str | None = None             # 投递说明
+    intro_screen : str | None = None            # 筛选简历说明
+    intro_interview : str | None = None         # 面试说明
+    intro_sign : str | None = None              # 签约说明
+    source : str = Field(...)                   # 来源：hr、school
+    province : str | None = None                # 省份 - 运营处理
+    degree_require : str                        # 学历要求
+    experience : str | None = None              # 经验要求：1:不限，2:1年以下，3:1-3年，4:3-5年，5:5-10年，6:10年以上
+    job_desc : str | None = None                # 职位描述
+    biz_salary : str | None = None              # 运营填写的年薪字段
+    about_major : str                           # 相关专业
+    view_count : int = Field(default=0, ge=0)   # 职位浏览数量
+    job_other : str | None = None               # 职位其他描述
+    source_school_id : str | None = None        # 来源学校ID
+    source_school : str = Field(default="未知")  # 来源学校名称
+    is_commend : bool = 0                       # 是否推荐
+    commend_time : str | None = None
+    is_publish : bool                           # 是否发布：0下架 1上架
+    publish_hr_id : str | None = None           # HRID，如果是PC端，没有openid
+    publish_hr_openid : str | None = None       # 发布人HR的openid
+    publish_time : str | None = None            # 发布时间
+    amount_welfare_min:int=Field(ge=0, default=0)# 特殊处理：福利金额最小值
+    amount_welfare_max:int=Field(le=1000000, default=0)# 特殊处理：福利金额最大值
+    time_type : str | None = None               # 特殊湖南化工职业技术学院增加工作时间类型
+    is_top : bool = 0                           # 是否置顶 0.否 1.是（该字段貌似不生效了）
+    job_type : bool                             # 职位类型： 0.普通职位 1.平台职位
+    create_by : str | None = None
+    create_time : datetime = None
+    # modify_by
+    # modify_time
+    # modify_timestamp
+    # 记录的修改时间，自动维护
+    # is_default
+    # 是否企业默认职位
+    # company_id_bak
+    # 历史公司ID
+    # removed
+    # 已删除标识：0
+    # 否，1
+    # 已删除
+
+
+class Double_choose(BaseModel):
+    """
+    单个岗位对象
+    """
+    desire_industry : str = Field(default_factory=lambda: uuid4().hex,)
+    attribute : str = Field(frozen=True)       # 职位id(不可更改）
+    category : str = Field(...)               # 企业id
+
+
+class QueryRequest(BaseModel):
+    collection_name: str = 'jobs'
+    content : str
+    is_vector : bool = True
+    top_k : int = 10
+    filtered : dict = None
+
+
+
+# 定义 JobFair 模型
+class JobFair(BaseModel):
+    fair_id: int                 # 双选会ID
+    company_id: List[int]         # 公司ID列表
+
+# 定义 Career 模型
+class Career(BaseModel):
+    career_talk_id: int           # 宣讲会ID
+
+# 定义主模型
+class JobRequestModel(BaseModel):
+    desire_industry: str          # 期望行业
+    attribute: str                # 单位性质
+    category: str                 # 岗位类型
+    second_category: str          # 职位分类
+    cities: str                   # 工作地点
+    desire_salary: str            # 期望薪水
+    major: str                    # 专业名称
+    jobfair: JobFair              # 双选会
+    career: Optional[List[Career]] = []  # 宣讲会 (可选,默认为空列表)
