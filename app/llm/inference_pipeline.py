@@ -2,12 +2,12 @@
 RAG业务模块
 """
 
+# from qwak_inference import RealTimeClient
+from langchain_openai import ChatOpenAI
 
-import pandas as pd
-from app.evaluation import evaluate_llm
+from app.services.evaluation import evaluate_llm
 from app.llm.prompt_templates import InferenceTemplate
-from app.monitoring import PromptMonitoringManager
-from qwak_inference import RealTimeClient
+from app.services.monitoring import PromptMonitoringManager
 from app.rag.retriever import VectorRetriever
 from app.config import settings
 
@@ -17,10 +17,19 @@ logger = get_logger(__name__)
 
 class WEYON_LLM:
     def __init__(self) -> None:
-        self.qwak_client = RealTimeClient(
-            model_id=settings.QWAK_DEPLOYMENT_MODEL_ID,
-            model_api=settings.QWAK_DEPLOYMENT_MODEL_API,
+        # self.qwak_client = RealTimeClient(
+        #     model_id=settings.QWAK_DEPLOYMENT_MODEL_ID,
+        #     model_api=settings.QWAK_DEPLOYMENT_MODEL_API,
+        # )
+        self._client = ChatOpenAI(
+            model="Qwen/Qwen2.5-7B-Instruct",
+            openai_api_key=settings.Silicon_api_key1,
+            openai_api_base=settings.Silicon_base_url,
         )
+        # self._client = OpenAI(
+        #     api_key=settings.Silicon_api_key1,
+        #     base_url=settings.Silicon_base_url,
+        # )
         self.template = InferenceTemplate()
         self.prompt_monitoring_manager = PromptMonitoringManager()
 
@@ -29,7 +38,7 @@ class WEYON_LLM:
         query: str,
         enable_rag: bool = False,
         enable_evaluation: bool = False,
-        enable_monitoring: bool = True,
+        enable_monitoring: bool = False,
     ) -> dict:
         prompt_template = self.template.create_template(enable_rag=enable_rag)
         prompt_template_variables = {
@@ -48,12 +57,20 @@ class WEYON_LLM:
         else:
             prompt = prompt_template.format(question=query)
 
-        input_ = pd.DataFrame([{"instruction": prompt}]).to_json()
+        # input_ = pd.DataFrame([{"instruction": prompt}]).to_json()
 
-
-
-        response: list[dict] = self.qwak_client.predict(input_)
-        answer = response[0]["content"][0]
+        # response: list[dict] = self.qwak_client.predict(input_)
+        # answer = response[0]["content"][0]
+        # response = self._client.chat.completions.create(
+        #     model='Qwen/Qwen2.5-7B-Instruct',
+        #     messages=[{
+        #         'role': 'user',
+        #         'content': "抛砖引玉是什么意思呀"
+        #     }],
+        #     stream=False
+        # )
+        # answer = response.choices[0].message.content
+        answer = self._client.invoke(prompt).content
 
         if enable_evaluation is True:
             evaluation_result = evaluate_llm(query=query, output=answer)

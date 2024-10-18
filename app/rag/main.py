@@ -32,4 +32,4 @@ class DocumentChatAPI(ls.LitAPI):
 if __name__ == "__main__":
     api = DocumentChatAPI()
     server = ls.LitServer(api)
-    server.run(port=9000)
+    server.run(port=9001)

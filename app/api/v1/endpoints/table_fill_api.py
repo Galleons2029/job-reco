@@ -11,11 +11,12 @@ TODO: 完善请求异常处理机制
 """
 
 import os
-from fastapi import FastAPI, Body, HTTPException, status
+from fastapi import FastAPI, Body, HTTPException, status, APIRouter
 from fastapi.responses import Response
 from typing import List
 
 import json
+import random
 from bson import ObjectId
 import concurrent.futures
 from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
@@ -25,16 +26,13 @@ from langchain_openai import ChatOpenAI
 
 from app.config import settings
 from app.llm.prompts import prompts
-from app.db.models import JobInModel, JobOutModel, UpdateStudentModel, StudentCollection, Job2StudentModel, Major2StudentModel
+from app.db.models import JobInModel, JobOutModel, UpdateStudentModel, StudentCollection, Job2StudentModel, Major2StudentModel, QueryRequest, JobRequestModel
 
-tb_fill = FastAPI(
-    title="AI自动填写HR招聘岗位发布信息",
-    summary="接收JSON岗位、公司等描述，返回JSON表格结构",
-    version="0.0.2",
-)
+router = APIRouter()
 
 from qdrant_client import QdrantClient, models
-client = QdrantClient(url="localhost:6333")
+from qdrant_client.http.models import Filter, FieldCondition, MatchValue
+client = QdrantClient(url="192.168.100.111:6333")
 
 from xinference.client import Client
 client2 = Client("http://192.168.100.111:9997")
@@ -74,8 +72,8 @@ def qdrant_search(query: str, collection: str) -> dict:
     return result
 
 
-@tb_fill.post(
-    "/zsk/jobs_creat/",
+@router.post(
+    "/jobs_creat/",
     response_description="添加新的招聘岗位",
     response_model=JobOutModel,
     status_code=status.HTTP_201_CREATED,
@@ -139,16 +137,50 @@ async def create_job(job: JobInModel = Body(...)):
 
 
 def job_fromlist(description: str):
+    # _jobs = client.query_points(
+    # collection_name='jobs',
+    # query=embed_model.create_embedding(description)['data'][0]['embedding'],  # <--- Dense vector
+    # ).points
+    # return [publish_id.payload['publish_id'] for publish_id in _jobs]
+    # _jobs = client.search(
+    #     collection_name='jobs',
+    #     query_vector=embed_model.create_embedding("description")['data'][0]['embedding'],  # <--- Dense vector
+    #     query_filter=Filter(
+    #         must=[
+    #             FieldCondition(
+    #                 key='is_publish',
+    #                 match=MatchValue(value=1)
+    #             )
+    #         ]
+    #     ),
+    #     limit=20
+    # )
     _jobs = client.query_points(
-    collection_name='jobs',
-    query=embed_model.create_embedding(description)['data'][0]['embedding'],  # <--- Dense vector
+        collection_name='jobs',
+        query=embed_model.create_embedding(description)['data'][0]['embedding'],  # <--- Dense vector
+        query_filter=Filter(
+            must=[
+                FieldCondition(
+                    key='is_publish',
+                    match=MatchValue(value=1)
+                ),
+                FieldCondition(
+                    key='job_status',
+                    match=MatchValue(value=1)
+                ),
+            ]
+        ),
+        with_payload=True,
+        limit=50
     ).points
-    return [publish_id.payload['publish_id'] for publish_id in _jobs]
+    job_list = [publish_id.payload['publish_id'] for publish_id in _jobs]
+    return random.sample(job_list, len(job_list))
+
 jobs_chain = (ChatPromptTemplate.from_template(prompts.job_match)| mini1 | StrOutputParser() | job_fromlist )
 
 
-@tb_fill.post(
-    "/zsk/job_recom/",
+@router.post(
+    "/job_recom/",
     response_description="根据学生意愿进行推荐",
     response_model=List[int],
     response_model_by_alias=False,
@@ -170,8 +202,8 @@ async def list_students_byinterest(desire: Job2StudentModel = Body(...)) -> List
     return jobs_list
 
 
-@tb_fill.post(
-    "/zsk/job_recom_major/",
+@router.post(
+    "/job_recom_major/",
     response_description="根据学生专业进行推荐",
     response_model=List[int],
     response_model_by_alias=False,
@@ -191,33 +223,28 @@ async def list_students_bymajor(Major: Major2StudentModel) -> List[int]:
     return [publish_id.payload['publish_id'] for publish_id in _jobs]
 
 
-# @tb_fill.get(
-#     "/jobs/{id}",
-#     response_description="获取单个学生",
-#     response_model=StudentModel,
-#     response_model_by_alias=False,
-# )
-# async def show_student(id: str):
-#     """
-#     获取特定学生的记录，通过 `id` 查找。
-#     """
-#     if (
-#         student := await student_collection.find_one({"_id": ObjectId(id)})
-#     ) is not None:
-#         return student
-#
-#     raise HTTPException(status_code=404, detail=f"学生 {id} 未找到")
+@router.post(
+    "/job_search/",
+    response_description = "根据字符串对岗位库进行语义搜索",
+    response_model = List[dict],
+    response_model_by_alias = False,
+)
+
+async def search_qdrant(query: QueryRequest):
+    if query.is_vector:
+        query.content = embed_model.create_embedding(query.content)['data'][0]['embedding']
+    try:
+        search_result = client.query_points(
+            collection_name=query.collection_name,
+            query=query.content,
+            with_payload=True,
+            limit=query.top_k,
+        ).points
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return [{'score': item.score, **item.payload} for item in search_result]
 
 
 
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(
-        "table_fill_api:tb_fill",
-        host="192.168.100.73",
-        port=9000,
-        reload=True
-    )
 

@@ -1,16 +1,12 @@
-import litserve as ls
+from fastapi import FastAPI
+from xinference.thirdparty.deepseek_vl.serve.app_modules.presets import description
 
-class SimpleLitAPI(ls.LitAPI):
-    def setup(self, device):
-        self.model = None
+from app.api.v1.routers import api_router
+from app.config import settings
 
-    def predict(self, prompt):
-        # `prompt` is a list of dictionary containing role and content
-        # example: [{'role': 'user', 'content': 'How can I help you today?'}]
-        yield "This is a sample generated output"
+app = FastAPI(title=settings.PROJECT_NAME,
+              description="基于大模型岗位推送平台",
+              version=settings.VERSION,
+              )
 
-if __name__ == "__main__":
-    # Enable the OpenAISpec in LitServer
-    api = SimpleLitAPI()
-    server = ls.LitServer(api, spec=ls.OpenAISpec())
-    server.run(port=9000)
+app.include_router(api_router, prefix=settings.API_V1_STR)

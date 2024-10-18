@@ -125,7 +125,7 @@ async def delete_student(id: str):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "api:mongodb_CRUD",
+        "mongo_api:mongodb_CRUD",
         host="127.0.0.1",
         port=settings.MONGO_DATABASE_API_PORT,
         reload=True

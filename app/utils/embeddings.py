@@ -26,6 +26,13 @@ def embedd_text(text: str) -> np.ndarray:
     #embeddings_text = list(embeddings_generator)[0]
     #return embeddings_text
 
+def embedd_text_tolist(text: str) -> list[int]:
+    embedding_list = embed_model.create_embedding(text)['data'][0]['embedding']
+    return embedding_list
+    #embeddings_generator: np.ndarray = embedding_model.embed(text)
+    #embeddings_text = list(embeddings_generator)[0]
+    #return embeddings_text
+
 # 代码嵌入模型
 def embedd_repositories(text: str):
     # TODO：优化代码嵌入模型部分，寻找合适模型
