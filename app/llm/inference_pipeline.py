@@ -36,6 +36,7 @@ class WEYON_LLM:
     def generate(
         self,
         query: str,
+        collections: list[str],
         enable_rag: bool = False,
         enable_evaluation: bool = False,
         enable_monitoring: bool = False,
@@ -48,7 +49,7 @@ class WEYON_LLM:
         if enable_rag is True:
             retriever = VectorRetriever(query=query)
             hits = retriever.retrieve_top_k(
-                k=settings.TOP_K, to_expand_to_n_queries=settings.EXPAND_N_QUERY
+                k=settings.TOP_K, to_expand_to_n_queries=settings.EXPAND_N_QUERY, collections=collections
             )
             context = retriever.rerank(hits=hits, keep_top_k=settings.KEEP_TOP_K)  # list
             prompt_template_variables["context"] = context

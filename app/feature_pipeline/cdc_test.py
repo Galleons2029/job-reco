@@ -32,7 +32,7 @@ if __name__ == "__main__":
     insert_data_to_mongodb(
         settings.MONGO_DATABASE_HOST,
         "scrabble",
-        "articles",
+        "posts",
         {
             '_id': str(new_uuid),
             "platform": "Zhihu",

@@ -21,7 +21,7 @@ def stream_process():
     try:
         # 建立 MongoDB 连接
         client = MongoDatabaseConnector()
-        db = client["jobs"]
+        db = client["scrabble"]
         logging.info("连接至 MongoDB.")
 
         # 对指定集合进行监视

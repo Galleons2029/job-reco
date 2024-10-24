@@ -10,4 +10,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List
 
-from app.db.models import bi
+from app.db.models import Double_choose
+
+
+router = APIRouter()
+
+
