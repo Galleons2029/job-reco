@@ -29,62 +29,103 @@ class VectorRetriever:
         self._reranker = Reranker()
 
     def _search_single_query(
-        self, generated_query: str, metadata_filter_value: str | None, k: int = 3
+        self, generated_query: str, collections: list[str], metadata_filter_value: dict | None = None, k: int = 3
     ):
-        assert k > 3, "查询集合限制，k应该小于3"
+        # assert k > 3, "查询集合限制，k应该小于3"
+        #
+        # query_vector = self._embedder.create_embedding(generated_query)['data'][0]['embedding']    #.tolist()
+        # vectors = [
+        #     self._client.search(
+        #         collection_name="vector_posts",
+        #         query_filter=models.Filter(
+        #             must=[
+        #                 models.FieldCondition(
+        #                     key="author_id",
+        #                     match=models.MatchValue(
+        #                         value=metadata_filter_value,
+        #                     ),  # 查询 + 元数据过滤
+        #                 )
+        #             ]
+        #         ) if metadata_filter_value else None,   # 若为None则不进行过滤
+        #         query_vector=query_vector,
+        #         limit=k // 3,
+        #     ),
+        #     self._client.search(
+        #         collection_name="vector_articles",
+        #         query_filter=models.Filter(
+        #             must=[
+        #                 models.FieldCondition(
+        #                     key="author_id",
+        #                     match=models.MatchValue(
+        #                         value=metadata_filter_value,
+        #                     ),
+        #                 )
+        #             ]
+        #         ) if metadata_filter_value else None,
+        #         query_vector=query_vector,
+        #         limit=k // 3,
+        #     ),
+        #     self._client.search(
+        #         collection_name="vector_repositories",
+        #         query_filter=models.Filter(
+        #             must=[
+        #                 models.FieldCondition(
+        #                     key="owner_id",
+        #                     match=models.MatchValue(
+        #                         value=metadata_filter_value,
+        #                     ),
+        #                 )
+        #             ]
+        #         ) if metadata_filter_value else None,
+        #         query_vector=query_vector,
+        #         limit=k // 3,
+        #     ),
+        # ]
 
-        query_vector = self._embedder.create_embedding(generated_query)['data'][0]['embedding']    #.tolist()
-        vectors = [
-            self._client.search(
-                collection_name="vector_posts",
-                query_filter=models.Filter(
-                    must=[
-                        models.FieldCondition(
-                            key="author_id",
-                            match=models.MatchValue(
-                                value=metadata_filter_value,
-                            ),  # 查询 + 元数据过滤
-                        )
-                    ]
-                ) if metadata_filter_value else None,   # 若为None则不进行过滤
-                query_vector=query_vector,
-                limit=k // 3,
-            ),
-            self._client.search(
-                collection_name="vector_articles",
-                query_filter=models.Filter(
-                    must=[
-                        models.FieldCondition(
-                            key="author_id",
-                            match=models.MatchValue(
-                                value=metadata_filter_value,
-                            ),
-                        )
-                    ]
-                ) if metadata_filter_value else None,
-                query_vector=query_vector,
-                limit=k // 3,
-            ),
-            self._client.search(
-                collection_name="vector_repositories",
-                query_filter=models.Filter(
-                    must=[
-                        models.FieldCondition(
-                            key="owner_id",
-                            match=models.MatchValue(
-                                value=metadata_filter_value,
-                            ),
-                        )
-                    ]
-                ) if metadata_filter_value else None,
-                query_vector=query_vector,
-                limit=k // 3,
-            ),
-        ]
+        # assert k > len(collections), f"查询集合限制，k应该大于集合的数量: {len(collections)}"
+
+        assert k > 3, "查询集合限制，k应该小于3"
+        # 生成查询向量
+        query_vector = self._embedder.create_embedding(generated_query)['data'][0]['embedding']
+
+        # 初始化存储各集合查询结果的列表
+        vectors = []
+
+        # 通用过滤条件
+        if metadata_filter_value:
+            filter_condition = models.Filter(
+                must=[
+                    models.FieldCondition(
+                        key=metadata_filter_value['key'],
+                        match=models.MatchValue(
+                            value=metadata_filter_value['value'],
+                        ),
+                    )
+                ]
+            )
+        else:
+            filter_condition = None
+
+        # 遍历集合并进行搜索
+        for collection_name in collections:
+            # 执行搜索并添加到 vectors 列表中
+            vectors.append(
+                self._client.search(
+                    collection_name=collection_name,
+                    query_filter=filter_condition,
+                    query_vector=query_vector,
+                    limit=k // len(collections),
+                )
+            )
 
         return app.utils.flatten(vectors)
 
-    def retrieve_top_k(self, k: int, to_expand_to_n_queries: int = 3) -> list:
+
+    def retrieve_top_k(self,
+                       k: int,
+                       collections: list[str],
+                       filter_setting: dict | None = None,
+                       to_expand_to_n_queries: int = 3) -> list:
         # 生成多重查询
         generated_queries = self._query_expander.generate_response(
             self.query, to_expand_to_n=to_expand_to_n_queries
@@ -106,7 +147,7 @@ class VectorRetriever:
         # 在不同的线程上分别运行各查询以减少网络I/O开销，不受python的GIL限制阻碍
         with concurrent.futures.ThreadPoolExecutor() as executor:
             search_tasks = [
-                executor.submit(self._search_single_query, query, author_id, k)
+                executor.submit(self._search_single_query, query, collections, filter_setting, k)
                 for query in generated_queries
             ]
 

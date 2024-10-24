@@ -69,6 +69,16 @@ class StudentCollection(BaseModel):
 
 
 
+class DocumentCollection(BaseModel):
+    """
+    一个容器，包含多个 `StudentModel` 实例。
+    这是因为在 JSON 响应中提供最高级数组可能存在漏洞。
+    """
+
+    students: List[StudentModel]
+
+
+
 
 
 class JobInModel(BaseModel):
@@ -234,6 +244,10 @@ class Jobs(BaseModel):
     """
     单个岗位对象
     """
+    model_config = ConfigDict(
+        extra="forbid",
+    )
+
     id : str = Field(default_factory=lambda: uuid4().hex,)
     publish_id : str = Field(frozen=True)       # 职位id(不可更改）
     company_id : str = Field(...)               # 企业id
