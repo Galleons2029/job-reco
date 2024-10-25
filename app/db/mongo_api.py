@@ -15,7 +15,7 @@ mongodb_CRUD = FastAPI(
 )
 
 client = motor.motor_asyncio.AsyncIOMotorClient(settings.MONGO_DATABASE_HOST)
-db = client.college
+db = client.get_database(settings.MONGO_DATABASE_NAME)
 student_collection = db.get_collection("students")
 
 @mongodb_CRUD.post(

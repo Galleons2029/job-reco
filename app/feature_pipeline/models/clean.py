@@ -61,3 +61,28 @@ class RepositoryCleanedModel(VectorDBDataModel):
         }
 
         return self.entry_id, data
+
+# 自定义文档类
+class DocumentCleanedModel(VectorDBDataModel):
+    entry_id: str
+    knowledge_id: str
+    doc_id: str
+    path: str
+    cleaned_content: str
+    user_id: str | None = None
+    image: Optional[str] = None
+    type: str
+
+    def to_payload(self) -> Tuple[str, dict]:
+        data = {
+            "knowledge_id": self.knowledge_id,
+            "doc_id": self.doc_id,
+            "path": self.path,
+            "user_id": self.user_id,
+            "cleaned_content": self.cleaned_content,
+            "image": self.image,
+            "type": self.type,
+        }
+
+        return self.entry_id, data
+

@@ -12,21 +12,24 @@ from app.feature_pipeline.data_logic.chunking_data_handlers import (
     ChunkingDataHandler,
     PostChunkingHandler,
     RepositoryChunkingHandler,
+    DocumentChunkingHandler,
 )
 from app.feature_pipeline.data_logic.cleaning_data_handlers import (
     ArticleCleaningHandler,
     CleaningDataHandler,
     PostCleaningHandler,
     RepositoryCleaningHandler,
+    DocumentCleaningHandler,
 )
 from app.feature_pipeline.data_logic.embedding_data_handlers import (
     ArticleEmbeddingHandler,
     EmbeddingDataHandler,
     PostEmbeddingHandler,
     RepositoryEmbeddingHandler,
+    DocumentEmbeddingHandler,
 )
 from app.feature_pipeline.models.base import DataModel
-from app.feature_pipeline.models.raw import ArticleRawModel, PostsRawModel, RepositoryRawModel
+from app.feature_pipeline.models.raw import ArticleRawModel, PostsRawModel, RepositoryRawModel, DocumentRawModel
 
 logger = get_logger(__name__)
 
@@ -44,6 +47,8 @@ class RawDispatcher:
             model = ArticleRawModel(**message)
         elif data_type == "repositories":
             model = RepositoryRawModel(**message)
+        elif data_type == "documents":
+            model = DocumentRawModel(**message)
         else:
             logger.error(f"不支持的数据类型: {data_type}")
             raise ValueError("Unsupported data type")
@@ -61,6 +66,8 @@ class CleaningHandlerFactory:
             return ArticleCleaningHandler()
         elif data_type == "repositories":
             return RepositoryCleaningHandler()
+        elif data_type == "documents":
+            return DocumentCleaningHandler()
         else:
             logger.error(f"不支持的清理数据类型: {data_type}")
             raise ValueError("Unsupported data type")
@@ -115,6 +122,8 @@ class ChunkingHandlerFactory:
             return ArticleChunkingHandler()
         elif data_type == "repositories":
             return RepositoryChunkingHandler()
+        elif data_type == "documents":
+            return DocumentChunkingHandler()
         else:
             logger.error(f"不支持的分块数据类型: {data_type}")
             raise ValueError("Unsupported data type")
@@ -149,6 +158,8 @@ class EmbeddingHandlerFactory:
             return ArticleEmbeddingHandler()
         elif data_type == "repositories":
             return RepositoryEmbeddingHandler()
+        elif data_type == "documents":
+            return DocumentEmbeddingHandler()
         else:
             logger.error(f"不支持的嵌入数据类型: {data_type}")
             raise ValueError("Unsupported data type")

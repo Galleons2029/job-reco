@@ -2,8 +2,8 @@ import hashlib
 from abc import ABC, abstractmethod
 
 from app.feature_pipeline.models.base import DataModel
-from app.feature_pipeline.models.chunk import ArticleChunkModel, PostChunkModel, RepositoryChunkModel
-from app.feature_pipeline.models.clean import ArticleCleanedModel, PostCleanedModel, RepositoryCleanedModel
+from app.feature_pipeline.models.chunk import ArticleChunkModel, PostChunkModel, RepositoryChunkModel, DocumentChunkModel
+from app.feature_pipeline.models.clean import ArticleCleanedModel, PostCleanedModel, RepositoryCleanedModel, DocumentCleanedModel
 from app.utils.chunking import chunk_text
 
 from app.utils.logging import get_logger
@@ -87,3 +87,32 @@ class RepositoryChunkingHandler(ChunkingDataHandler):
             data_models_list.append(model)
 
         return data_models_list
+
+
+#自定义类
+class DocumentChunkingHandler(ChunkingDataHandler):
+    def chunk(self, data_model: DocumentCleanedModel) -> list[DocumentChunkModel]:
+        data_models_list = []
+
+        text_content = data_model.cleaned_content
+        logger.debug(f"对清洗好的数据进行切分: {text_content}")
+        chunks = chunk_text(text_content)
+        logger.debug(f"切片为: {chunks}")
+
+        for chunk in chunks:
+            model = DocumentChunkModel(
+                entry_id=data_model.entry_id,
+                knowledge_id=data_model.knowledge_id,
+                doc_id=data_model.doc_id,
+                path=data_model.path,
+                chunk_id=hashlib.md5(chunk.encode()).hexdigest(),
+                chunk_content=chunk,
+                user_id=data_model.user_id,
+                image=data_model.image if data_model.image else None,
+                type=data_model.type,
+            )
+            data_models_list.append(model)
+
+        return data_models_list
+
+

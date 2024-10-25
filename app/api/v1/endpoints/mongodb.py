@@ -14,7 +14,7 @@ from bson import ObjectId
 from pymongo import ReturnDocument
 
 from app.config import settings
-from app.db.models import StudentModel, UpdateStudentModel, DocumentCollection
+from app.db.models import DocumentCollection
 from app.feature_pipeline.models.raw import ArticleRawModel, PostsRawModel, RepositoryRawModel
 
 import uuid
@@ -80,53 +80,53 @@ async def create_document(document: Document = Body(...)):
     response_model=DocumentCollection,
     response_model_by_alias=False,
 )
-async def list_students():
+async def list_documents():
     """
     列出数据库中的所有文档数据。
 
     响应是未分页的，限制为 1000 个结果。
     """
-    return DocumentCollection(students=await document_collection.find().to_list(1000))
+    return DocumentCollection(documents=await document_collection.find().to_list(1000))
 
 
 @router.get(
     "/documents/{id}",
     response_description="获取单个文档",
-    response_model=StudentModel,
+    response_model=Document,
     response_model_by_alias=False,
 )
-async def show_student(id: str):
+async def show_document(id: str):
     """
     获取特定文档的记录，通过 `id` 查找。
     """
     if (
-        student := await document_collection.find_one({"_id": ObjectId(id)})
+        document := await document_collection.find_one({"_id": ObjectId(id)})
     ) is not None:
-        return student
+        return document
 
     raise HTTPException(status_code=404, detail=f"文档 {id} 未找到")
 
 @router.put(
     "/documents/{id}",
     response_description="更新文档",
-    response_model=StudentModel,
+    response_model=Document,
     response_model_by_alias=False,
 )
-async def update_student(id: str, student: UpdateStudentModel = Body(...)):
+async def update_document(id: str, document: Document = Body(...)):
     """
     更新现有文档记录的单个字段。
 
     只有提供的字段会被更新。
     任何缺失或 `null` 字段将被忽略。
     """
-    student = {
-        k: v for k, v in student.model_dump(by_alias=True).items() if v is not None
+    document = {
+        k: v for k, v in document.model_dump(by_alias=True).items() if v is not None
     }
 
-    if len(student) >= 1:
+    if len(document) >= 1:
         update_result = await document_collection.find_one_and_update(
             {"_id": ObjectId(id)},
-            {"$set": student},
+            {"$set": document},
             return_document=ReturnDocument.AFTER,
         )
         if update_result is not None:
@@ -135,13 +135,13 @@ async def update_student(id: str, student: UpdateStudentModel = Body(...)):
             raise HTTPException(status_code=404, detail=f"文档 {id} 未找到")
 
     # 更新为空，但我们仍应返回匹配的文档：
-    if (existing_student := await document_collection.find_one({"_id": id})) is not None:
-        return existing_student
+    if (existing_document := await document_collection.find_one({"_id": id})) is not None:
+        return existing_document
 
     raise HTTPException(status_code=404, detail=f"文档 {id} 未找到")
 
 @router.delete("/documents/{id}", response_description="删除文档")
-async def delete_student(id: str):
+async def delete_document(id: str):
     """
     从数据库中删除单个文档记录。
     """

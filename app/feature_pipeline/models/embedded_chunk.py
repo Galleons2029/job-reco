@@ -79,3 +79,33 @@ class RepositoryEmbeddedChunkModel(VectorDBDataModel):
         }
 
         return self.chunk_id, self.embedded_content, data
+
+
+
+
+# 自定义类
+class DocumentEmbeddedChunkModel(VectorDBDataModel):
+    entry_id: str
+    knowledge_id: str
+    doc_id: str
+    path: str
+    chunk_id: str
+    chunk_content: str
+    embedded_content: np.ndarray
+    user_id: str | None = None
+    type: str
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    def to_payload(self) -> Tuple[str, np.ndarray, dict]:
+        data = {
+            "knowledge_id": self.knowledge_id,
+            "doc_id": self.doc_id,
+            "path": self.path,
+            "user_id": self.user_id,
+            "content": self.chunk_content,
+            "type": self.type,
+        }
+
+        return self.chunk_id, self.embedded_content, data
