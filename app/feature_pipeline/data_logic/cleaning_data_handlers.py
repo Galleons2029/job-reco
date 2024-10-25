@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 
 from app.feature_pipeline.models.base import DataModel
-from app.feature_pipeline.models.clean import ArticleCleanedModel, PostCleanedModel, RepositoryCleanedModel
-from app.feature_pipeline.models.raw import ArticleRawModel, PostsRawModel, RepositoryRawModel
+from app.feature_pipeline.models.clean import ArticleCleanedModel, PostCleanedModel, RepositoryCleanedModel, \
+    DocumentCleanedModel
+from app.feature_pipeline.models.raw import ArticleRawModel, PostsRawModel, RepositoryRawModel, DocumentRawModel
 from app.utils.cleaning import clean_text
 
+from pydantic import ValidationError
 
 class CleaningDataHandler(ABC):
     """
@@ -53,3 +55,24 @@ class RepositoryCleaningHandler(CleaningDataHandler):
             owner_id=data_model.owner_id,
             type=data_model.type,
         )
+
+
+
+# 自定义
+class DocumentCleaningHandler(CleaningDataHandler):
+    def clean(self, data_model: DocumentRawModel) -> DocumentCleanedModel:
+        try:
+            doc_model = DocumentCleanedModel(
+            entry_id=data_model.entry_id,
+            knowledge_id=data_model.knowledge_id,
+            doc_id=data_model.doc_id,
+            path=data_model.path,
+            cleaned_content=clean_text("".join(data_model.content.values())),
+            user_id=data_model.user_id,
+            image=data_model.image if data_model.image else None,
+            type=data_model.type,
+        )
+        except ValidationError as e:
+            print(e.json())
+        return doc_model
+

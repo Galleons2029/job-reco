@@ -33,3 +33,10 @@ class JobsRawModel(DataModel):
     content: dict
 
 
+class DocumentRawModel(DataModel):
+    knowledge_id: str
+    doc_id: str
+    path: str
+    content: dict
+    user_id: str | None = None
+    image: Optional[str] = None
