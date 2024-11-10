@@ -14,14 +14,14 @@ from bson import ObjectId
 from pymongo import ReturnDocument
 
 from app.config import settings
-from app.db.models import StudentModel, UpdateStudentModel, StudentCollection
+from app.db.models.students import StudentModel, UpdateStudentModel, StudentCollection
 
 
 router = APIRouter()
 
 
 client = motor.motor_asyncio.AsyncIOMotorClient(settings.MONGO_DATABASE_HOST)
-db = client.get_database("scrabble")
+db = client.get_database("college")
 
 
 def get_collection(collection_name: str):

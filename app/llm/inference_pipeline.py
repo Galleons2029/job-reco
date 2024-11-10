@@ -4,6 +4,7 @@ RAG业务模块
 
 # from qwak_inference import RealTimeClient
 from langchain_openai import ChatOpenAI
+from openai.types.chat import ChatCompletion
 
 from app.services.evaluation import evaluate_llm
 from app.llm.prompt_templates import InferenceTemplate
@@ -96,3 +97,57 @@ class WEYON_LLM:
             )
 
         return {"answer": answer, "llm_evaluation_result": evaluation_result}
+
+
+
+from openai import OpenAI
+
+class InferenceOpenAI:
+    def __init__(self) -> None:
+        self._client = OpenAI(
+            api_key=settings.Silicon_api_key1,
+            base_url=settings.Silicon_base_url,
+        )
+        self.template = InferenceTemplate()
+        self.prompt_monitoring_manager = PromptMonitoringManager()
+
+    def generate(
+        self,
+        query: str,
+        collections: list[str],
+        enable_rag: bool = False,
+        enable_evaluation: bool = False,
+        enable_monitoring: bool = False,
+    ) -> ChatCompletion:
+        prompt_template = self.template.create_template(enable_rag=enable_rag)
+        prompt_template_variables = {
+            "question": query,
+        }
+
+        if enable_rag is True:
+            retriever = VectorRetriever(query=query)
+            hits = retriever.retrieve_top_k(
+                k=settings.TOP_K, to_expand_to_n_queries=settings.EXPAND_N_QUERY, collections=collections
+            )
+            context = retriever.rerank(hits=hits, keep_top_k=settings.KEEP_TOP_K)  # list
+            prompt_template_variables["context"] = context
+
+            prompt = prompt_template.format(question=query, context=context)
+        else:
+            prompt = prompt_template.format(question=query)
+
+        # input_ = pd.DataFrame([{"instruction": prompt}]).to_json()
+
+        # response: list[dict] = self.qwak_client.predict(input_)
+        # answer = response[0]["content"][0]
+        response = self._client.chat.completions.create(
+            model='Qwen/Qwen2.5-7B-Instruct',
+            messages=[{
+                'role': 'user',
+                'content': prompt
+            }],
+            stream=False
+        )
+        # answer = response.choices[0].message.content
+
+        return response

@@ -14,7 +14,7 @@ from bson import ObjectId
 from pymongo import ReturnDocument
 
 from app.config import settings
-from app.db.models import DocumentCollection
+from app.db.models.documents import DocumentCollection
 from app.feature_pipeline.models.raw import ArticleRawModel, PostsRawModel, RepositoryRawModel
 
 import uuid

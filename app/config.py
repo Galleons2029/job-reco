@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file="../.env", env_file_encoding="utf-8")
 
     PROJECT_NAME: str = "云研云就业岗位推荐服务平台"
-    API_V1_STR: str = "/api/v1"
+    API_V1_STR: str = "/weyon"
     VERSION:str = "1.0.0"
 
     # MongoDB configs
@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     Silicon_api_key2: str | None = "sk-kutnkphezarrglswegiqwwaywqqwkvanwjobmwmdjututqkf"
     Silicon_api_key3: str | None = "sk-orbrjhjcqmgezlurbvsmfxqmnjwkmjdrypwdiwvyfarkbnag"
     Silicon_base_url: str | None = "https://api.siliconflow.cn/v1"
+
+
+
     Silicon_model_v1: str | None = "Qwen/Qwen2-72B-Instruct"
 
     # CometML config
@@ -69,3 +72,26 @@ class Settings(BaseSettings):
     )
 
 settings = Settings()
+
+
+
+
+from functools import lru_cache
+
+class QdrantSettings(BaseSettings):
+    QDRANT_HOST: str = "192.168.100.146"
+    QDRANT_PORT: int = 6333
+    QDRANT_GRPC_PORT: int = 6334
+    QDRANT_API_KEY: str | None = None
+    QDRANT_HTTPS: bool = False
+    QDRANT_TIMEOUT: int = 10
+    QDRANT_PREFER_GRPC: bool = False
+
+    class Config:
+        env_prefix = "QDRANT_"
+        env_file = ".env"
+
+
+@lru_cache()
+def get_qdrant_settings() -> QdrantSettings:
+    return QdrantSettings()
