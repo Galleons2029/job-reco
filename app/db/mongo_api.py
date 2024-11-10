@@ -6,7 +6,7 @@ from bson import ObjectId
 from pymongo import ReturnDocument
 
 from app.config import settings
-from app.db.models import StudentModel, UpdateStudentModel, StudentCollection
+from app.db.models.students import StudentModel, UpdateStudentModel, StudentCollection
 
 
 mongodb_CRUD = FastAPI(

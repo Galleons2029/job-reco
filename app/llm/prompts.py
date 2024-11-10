@@ -11,7 +11,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Prompts(BaseSettings):
-    model_config = SettingsConfigDict(env_file="../.env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(extra="allow",env_file="../.env", env_file_encoding="utf-8")
 
     # prompt: str = """You are an AI language model assistant. Your task is to generate {to_expand_to_n}
     # different versions of the given user question to retrieve relevant documents from a vector

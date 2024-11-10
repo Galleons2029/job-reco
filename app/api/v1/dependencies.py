@@ -27,8 +27,8 @@ def qdrant_connection():
         pass
 
 
-def get_xinference_client() -> QdrantClient:
+def get_xinference_client():
     client = Client("http://192.168.100.111:9997")
-    embed_model = client.get_model("bge-small-zh-v1.5")
+    embed_model = client.get_model("bge-m3")
     return embed_model
 

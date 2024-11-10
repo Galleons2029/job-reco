@@ -26,7 +26,8 @@ from langchain_openai import ChatOpenAI
 
 from app.config import settings
 from app.llm.prompts import prompts
-from app.db.models import JobInModel, JobOutModel, UpdateStudentModel, StudentCollection, Job2StudentModel, Major2StudentModel, QueryRequest, JobRequestModel
+from app.db.models.models import JobInModel, JobOutModel, Job2StudentModel, Major2StudentModel, QueryRequest
+from app.db.models.jobs import JobRequestModel
 
 router = APIRouter()
 
@@ -37,6 +38,8 @@ client = QdrantClient(url="192.168.100.111:6333")
 from xinference.client import Client
 client2 = Client("http://192.168.100.111:9997")
 embed_model = client2.get_model("bge-small-zh-v1.5")
+embed_model_pro = client2.get_model("bge-m3")
+
 
 mini1 = ChatOpenAI(model="qwen2-mini1",openai_api_key='empty',openai_api_base="http://192.168.100.111:8011/v1",temperature=0)
 mini2 = ChatOpenAI(model="qwen2-mini2",openai_api_key='empty',openai_api_base="http://192.168.100.111:8012/v1",temperature=0)
@@ -156,8 +159,8 @@ def job_fromlist(description: str):
     #     limit=20
     # )
     _jobs = client.query_points(
-        collection_name='jobs',
-        query=embed_model.create_embedding(description)['data'][0]['embedding'],  # <--- Dense vector
+        collection_name='job_2024_1109',
+        query=embed_model_pro.create_embedding(description)['data'][0]['embedding'],  # <--- Dense vector
         query_filter=Filter(
             must=[
                 FieldCondition(
@@ -216,8 +219,8 @@ async def list_students_bymajor(Major: Major2StudentModel) -> List[int]:
     """
 
     _jobs = client.query_points(
-        collection_name='jobs',
-        query=embed_model.create_embedding(Major.major)['data'][0]['embedding'],  # <--- Dense vector
+        collection_name='job_2024_1109',
+        query=embed_model_pro.create_embedding(Major.major)['data'][0]['embedding'],  # <--- Dense vector
     ).points
 
     return [publish_id.payload['publish_id'] for publish_id in _jobs]

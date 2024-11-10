@@ -11,7 +11,6 @@ from typing import List
 from pydantic import BaseModel, ConfigDict, Field
 from app.llm.inference_pipeline import WEYON_LLM
 
-from app.db.models import Double_choose
 
 class Query(BaseModel):
     query: str
