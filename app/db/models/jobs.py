@@ -7,9 +7,98 @@
 这里是文件说明
 """
 
-from pydantic import BaseModel, Field
-from typing import List, Optional
 import datetime
+from pydantic import BaseModel, Field, field_validator
+from typing import List, Optional
+import time
+
+class JobUpdateItem(BaseModel):
+    """岗位更新请求项模型"""
+    publish_id: int = Field(..., description="职位ID(必填)")
+    company_id: Optional[int] = Field(None, description="企业ID")
+    m_company_id: Optional[int] = Field(None, description="合并后的单位ID")
+    company_name: Optional[str] = Field(None, description="企业名称")
+    job_id: Optional[int] = Field(None, description="职位ID")
+    end_time: Optional[int] = Field(None, description="职位过期时间")
+    is_practice: Optional[int] = Field(None, ge=0, le=2, description="是否实习 0：校招 1：实习 2：社招")
+    is_zpj_job: Optional[int] = Field(None, description="招聘节职位")
+    apply_count: Optional[int] = Field(None, ge=0, description="收到简历数量")
+    job_name: Optional[str] = Field(None, description="职位名称")
+    edu_category: Optional[str] = Field(None, description="教育部职位分类")
+    category: Optional[str] = Field(None, description="职位类别")
+    category_id: Optional[str] = Field(None, description="职位类别ID")
+    parent_category: Optional[str] = Field(None, description="父级职位类别")
+    parent_category_id: Optional[str] = Field(None, description="父级职位类别ID")
+    second_category: Optional[str] = Field(None, description="二级职位分类")
+    second_category_id: Optional[str] = Field(None, description="二级职位分类ID")
+    category_teacher_type: Optional[str] = Field(None, description="教师子类别")
+    job_number: Optional[int] = Field(None, ge=0, description="招聘人数")
+    job_status: Optional[int] = Field(None, description="1招聘中，0已结束，-1屏蔽")
+    job_require: Optional[str] = Field(None, description="职位要求")
+    job_descript: Optional[str] = Field(None, description="职位描述")
+    salary: Optional[str] = Field(None, description="年薪，为空直接是面议")
+    salary_min: Optional[int] = Field(None, ge=0, description="薪资范围 - 最少")
+    salary_max: Optional[int] = Field(None, le=1000000, description="薪资范围 - 最多")
+    contact_tel: Optional[str] = Field(None, description="联系电话")
+    city_name: Optional[str] = Field(None, description="工作城市")
+    work_address: Optional[str] = Field(None, description="工作地点")
+    keywords: Optional[str] = Field(None, description="关键字 空格分开")
+    welfare: Optional[str] = Field(None, description="薪酬福利")
+    intro_apply: Optional[str] = Field(None, description="投递说明")
+    intro_screen: Optional[str] = Field(None, description="筛选简历说明")
+    intro_interview: Optional[str] = Field(None, description="面试说明")
+    intro_sign: Optional[str] = Field(None, description="签约说明")
+    province: Optional[str] = Field(None, description="省份")
+    degree_require: Optional[str] = Field(None, description="学历要求")
+    experience: Optional[str] = Field(None, description="经验要求")
+    job_desc: Optional[str] = Field(None, description="职位描述")
+    biz_salary: Optional[str] = Field(None, description="运营填写的年薪字段")
+    about_major: Optional[str] = Field(None, description="相关专业")
+    view_count: Optional[int] = Field(None, ge=0, description="职位浏览数量")
+    job_other: Optional[str] = Field(None, description="职位其他描述")
+    source_school_id: Optional[str] = Field(None, description="来源学校ID")
+    source_school: Optional[str] = Field(None, description="来源学校名称")
+    is_commend: Optional[bool] = Field(None, description="是否推荐")
+    is_publish: Optional[bool] = Field(None, description="是否发布：0下架 1上架")
+    amount_welfare_min: Optional[int] = Field(None, ge=0, description="福利金额最小值")
+    amount_welfare_max: Optional[int] = Field(None, le=1000000, description="福利金额最大值")
+    time_type: Optional[str] = Field(None, description="工作时间类型")
+    is_top: Optional[bool] = Field(None, description="是否置顶")
+    job_type: Optional[bool] = Field(None, description="职位类型： 0.普通职位 1.平台职位")
+    create_time: int | None = None
+    modify_by: int | None = None
+    modify_time: int | None = None
+    modify_timestamp: str | None = None
+    is_default: int | None = None
+    company_id_bak: int | None = None
+    removed: int | None = None
+
+    @field_validator('end_time')
+    def validate_end_time(cls, v):
+        if v is not None:
+            current_time = int(time.time())
+            if v < current_time:
+                raise ValueError("结束时间不能早于当前时间")
+        return v
+
+    @field_validator('salary_min', 'salary_max')
+    def validate_salary_range(cls, v, values, **kwargs):
+        if v is not None:
+            field_name = kwargs['field'].name
+            if field_name == 'salary_max' and 'salary_min' in values.data:
+                salary_min = values.data['salary_min']
+                if salary_min is not None and v < salary_min:
+                    raise ValueError("最高薪资不能低于最低薪资")
+        return v
+
+    def get_non_none_fields(self) -> dict:
+        """获取所有非None的字段值"""
+        return {
+            field: value
+            for field, value in self.model_dump().items()
+            if value is not None
+        }
+
 
 
 class CareerTalk(BaseModel):
@@ -25,7 +114,6 @@ class Career_talk(BaseModel):
 class Response_CareerTalk(BaseModel):
     career_talk_id: int
     job_id: List[int]
-
 
 
 

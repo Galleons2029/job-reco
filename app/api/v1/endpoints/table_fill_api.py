@@ -27,7 +27,6 @@ from langchain_openai import ChatOpenAI
 from app.config import settings
 from app.llm.prompts import prompts
 from app.db.models.models import JobInModel, JobOutModel, Job2StudentModel, Major2StudentModel, QueryRequest
-from app.db.models.jobs import JobRequestModel
 
 router = APIRouter()
 
@@ -55,7 +54,7 @@ def match_item(dic: dict):
             for query, collection in zip(queries, collections)
         ]
         hits = [
-            #            task.result() for task in concurrent.futures.as_completed(search_tasks)
+            # task.result() for task in concurrent.futures.as_completed(search_tasks)
             task.result() for task in search_tasks
         ]  # 等待所有线程
     dic['需求专业'] = "#".join(
@@ -140,24 +139,7 @@ async def create_job(job: JobInModel = Body(...)):
 
 
 def job_fromlist(description: str):
-    # _jobs = client.query_points(
-    # collection_name='jobs',
-    # query=embed_model.create_embedding(description)['data'][0]['embedding'],  # <--- Dense vector
-    # ).points
-    # return [publish_id.payload['publish_id'] for publish_id in _jobs]
-    # _jobs = client.search(
-    #     collection_name='jobs',
-    #     query_vector=embed_model.create_embedding("description")['data'][0]['embedding'],  # <--- Dense vector
-    #     query_filter=Filter(
-    #         must=[
-    #             FieldCondition(
-    #                 key='is_publish',
-    #                 match=MatchValue(value=1)
-    #             )
-    #         ]
-    #     ),
-    #     limit=20
-    # )
+
     _jobs = client.query_points(
         collection_name='job_2024_1109',
         query=embed_model_pro.create_embedding(description)['data'][0]['embedding'],  # <--- Dense vector

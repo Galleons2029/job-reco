@@ -15,6 +15,9 @@ from pydantic import ValidationError
 from app.api.v1.endpoints import (
     users, table_fill_api, bilateral_meeting, students_api, chat, student_v2, recom, jobs_api
 )
+from app.api.v2.endpoints import (
+    jobs_api_v2, meeting_api
+)
 
 # api_router = APIRouter()
 api_router = FastAPI(
@@ -32,7 +35,9 @@ api_router.include_router(chat.router, prefix="/zsk/v1/chat", tags=["chat-v1"])
 api_router.include_router(users.router, prefix="/zsk/v1/user", tags=["user-v1"])
 api_router.include_router(student_v2.router, prefix="/zsk/v2/student", tags=["student-v2"])
 api_router.include_router(recom.router, prefix="/zsk/v2/recom", tags=["recom-v2"])
-api_router.include_router(jobs_api.router, prefix="/zsk/v2/jobs", tags=["jobs-v2"])
+api_router.include_router(jobs_api_v2.router, prefix="/zsk/v2/jobs", tags=["jobs-v2"])
+api_router.include_router(meeting_api.router, prefix="/zsk/v2/meetings", tags=["meetings-v2"])
+
 
 
 

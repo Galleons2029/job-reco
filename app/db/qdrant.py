@@ -12,10 +12,21 @@ import logging
 from typing import Optional
 from contextlib import contextmanager
 from qdrant_client import QdrantClient, models
-
+from pydantic import BaseModel
+import os
 from app.config import get_qdrant_settings
 
 logger = logging.getLogger(__name__)
+
+
+class QdrantSettings(BaseModel):
+    # Only include the required fields for Qdrant connection
+    url: str
+    api_key: str | None = None
+    port: int | None = None
+    
+    class Config:
+        extra = "forbid"  # This prevents extra fields from being accepted
 
 
 class QdrantClientManager:
@@ -27,18 +38,20 @@ class QdrantClientManager:
         获取Qdrant客户端单例实例
         """
         if cls._instance is None:
-            settings = get_qdrant_settings()
+            settings = QdrantSettings(
+                url=os.getenv("QDRANT_URL", "http://192.168.100.146:6333"),
+                # api_key=os.getenv("QDRANT_API_KEY"),
+                port=None,
+            )
             try:
                 cls._instance = QdrantClient(
-                    url=f"{settings.QDRANT_HOST}:{settings.QDRANT_PORT}",
-                    api_key=settings.QDRANT_API_KEY,
-                    prefer_grpc=settings.QDRANT_PREFER_GRPC,
-                    timeout=settings.QDRANT_TIMEOUT,
-                    https=settings.QDRANT_HTTPS
+                    url=settings.url,
+                    # api_key=settings.api_key
+                    port=settings.port,
                 )
-                logger.info("Successfully initialized Qdrant client connection")
+                logger.info("成功初始化 Qdrant 客户端连接")
             except Exception as e:
-                logger.error(f"Failed to initialize Qdrant client: {str(e)}")
+                logger.error(f"初始化 Qdrant 客户端失败: {str(e)}")
                 raise
         return cls._instance
 
@@ -52,7 +65,7 @@ class QdrantClientManager:
             client.get_collections()
             return True
         except Exception as e:
-            logger.error(f"Qdrant health check failed: {str(e)}")
+            logger.error(f"Qdrant 健康检查失败: {str(e)}")
             return False
 
     @classmethod
@@ -66,7 +79,7 @@ class QdrantClientManager:
             client = cls.get_client()
             yield client
         except Exception as e:
-            logger.error(f"Error during Qdrant client usage: {str(e)}")
+            logger.error(f"使用 Qdrant 客户端时发生错误: {str(e)}")
             raise
         finally:
             if client:
