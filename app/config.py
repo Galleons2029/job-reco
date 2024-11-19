@@ -48,9 +48,9 @@ class Settings(BaseSettings):
     RABBITMQ_QUEUE_NAME: str = "default"
 
     # QdrantDB config
-    QDRANT_DATABASE_HOST: str = "localhost"
+    QDRANT_DATABASE_HOST: str = "192.168.100.146"
     QDRANT_DATABASE_PORT: int = 6333
-    QDRANT_DATABASE_URL: str = "http://localhost:6333"
+    QDRANT_DATABASE_URL: str = "http://192.168.100.146:6333"
     QDRANT_CLOUD_URL: str = "str"
     USE_QDRANT_CLOUD: bool = False
     QDRANT_APIKEY: str | None = None
