@@ -14,6 +14,10 @@ import os
 from fastapi import FastAPI, Body, HTTPException, status, APIRouter
 from fastapi.responses import Response
 from typing import List
+import logging
+# 配置日志
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 import json
 import random
@@ -32,6 +36,8 @@ router = APIRouter()
 
 from qdrant_client import QdrantClient, models
 from qdrant_client.http.models import Filter, FieldCondition, MatchValue
+from app.db.qdrant import QdrantClientManager
+
 client = QdrantClient(url="192.168.100.111:6333")
 
 from xinference.client import Client
@@ -139,28 +145,32 @@ async def create_job(job: JobInModel = Body(...)):
 
 
 def job_fromlist(description: str):
-
-    _jobs = client.query_points(
-        collection_name='job_2024_1119',
-        query=embed_model_pro.create_embedding(description)['data'][0]['embedding'],  # <--- Dense vector
-        query_filter=Filter(
-            must=[
-                FieldCondition(
-                    key='is_publish',
-                    match=MatchValue(value=1)
+    with QdrantClientManager.get_client_context() as qdrant_client:
+        try:
+            _jobs = qdrant_client.query_points(
+                collection_name='job_2024_1119',
+                query=embed_model_pro.create_embedding(description)['data'][0]['embedding'],  # <--- Dense vector
+                query_filter=Filter(
+                    must=[
+                        FieldCondition(
+                            key='is_publish',
+                            match=MatchValue(value=1)
+                        ),
+                        FieldCondition(
+                            key='job_status',
+                            match=MatchValue(value=1)
+                        ),
+                    ]
                 ),
-                FieldCondition(
-                    key='job_status',
-                    match=MatchValue(value=1)
-                ),
-            ]
-        ),
-        with_payload=True,
-        limit=50,
-        using = 'job_descript',
-    ).points
-    job_list = [publish_id.payload['publish_id'] for publish_id in _jobs]
-    return random.sample(job_list, len(job_list))
+                with_payload=True,
+                limit=50,
+                using='job_descript',
+            ).points
+            job_list = [publish_id.payload['publish_id'] for publish_id in _jobs]
+            return random.sample(job_list, len(job_list))
+        except Exception as e:
+            logger.error(f"岗位推送时出错: {str(e)}")
+            raise
 
 jobs_chain = (ChatPromptTemplate.from_template(prompts.job_match)| mini1 | StrOutputParser() | job_fromlist )
 
@@ -200,14 +210,18 @@ async def list_students_bymajor(Major: Major2StudentModel) -> List[int]:
 
     响应是未分页的，限制为 10 个结果。
     """
+    with QdrantClientManager.get_client_context() as qdrant_client:
+        try:
+            _jobs = qdrant_client.query_points(
+                collection_name='job_2024_1119',
+                query=embed_model_pro.create_embedding(Major.major)['data'][0]['embedding'],  # <--- Dense vector
+                using='job_descript',
+            ).points
 
-    _jobs = client.query_points(
-        collection_name='job_2024_1119',
-        query=embed_model_pro.create_embedding(Major.major)['data'][0]['embedding'],  # <--- Dense vector
-        using='job_descript',
-    ).points
-
-    return [publish_id.payload['publish_id'] for publish_id in _jobs]
+            return [publish_id.payload['publish_id'] for publish_id in _jobs]
+        except Exception as e:
+            logger.error(f"批量更新岗位时出错: {str(e)}")
+            raise
 
 
 @router.post(
