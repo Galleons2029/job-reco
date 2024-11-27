@@ -54,6 +54,8 @@ class Settings(BaseSettings):
     QDRANT_CLOUD_URL: str = "str"
     USE_QDRANT_CLOUD: bool = False
     QDRANT_APIKEY: str | None = None
+    COLLECTION_TEST: str = "job_test3"
+    COLLECTION_NAME: str = "job_2024_1119"
 
     # LLM Model config
     TOKENIZERS_PARALLELISM: str = "false"

@@ -6,10 +6,9 @@
 """
 这里是文件说明
 """
-from app.api.v1.endpoints.table_fill_api import embed_model
 from app.config import settings
 
-from qdrant_client import QdrantClient, models
+from qdrant_client import QdrantClient
 from xinference.client import Client
 
 

@@ -4,7 +4,7 @@
 # @File    : recom.py
 
 """
-这里是文件说明
+岗位推荐服务
 """
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -13,6 +13,7 @@ import datetime
 
 from app.db.models.jobs import Career_talk, Response_CareerTalk
 from motor.motor_asyncio import AsyncIOMotorClient
+from app.api.v2.dependencies.by_qdrant import get_qdrant_client
 
 
 router = APIRouter()
@@ -30,12 +31,9 @@ client = AsyncIOMotorClient("mongodb://root:weyon%40mongodb@192.168.15.79:27017,
 db = client["college"]
 
 from qdrant_client import QdrantClient, models
-from qdrant_client.http.models import Filter, FieldCondition, MatchValue
-qdrant_connection = QdrantClient(url="192.168.100.111:6333")
 
-from xinference.client import Client
-xinference_connection = Client("http://192.168.100.111:9997")
-embed_model = xinference_connection.get_model("bge-m3")
+
+from app.utils.embeddings import vectorize
 
 def get_collection(collection_name: str):
     """
@@ -50,11 +48,14 @@ def get_collection(collection_name: str):
     response_model=List[Response_CareerTalk],
     response_model_by_alias=False,
 )
-async def career_talk(quest: Career_talk) -> list[Response_CareerTalk]:
+async def career_talk(
+        quest: Career_talk,
+        qdrant_client: QdrantClient = Depends(get_qdrant_client)
+) -> list[Response_CareerTalk]:
     """
     根据宣讲会ID推荐，每场宣讲会对应若干个宣讲岗位，
 
-    最终每场返回包含最多3个元素的列表，匹配度由高到低，匹配度低于0.5的推荐岗位将不返回。
+    最终每场返回包含最多5个元素的列表，匹配度由高到低，匹配度低于0.5的推荐岗位将不返回。
     """
     collection = get_collection(str(quest.school_id))
     student_key = quest.student_key
@@ -77,35 +78,21 @@ async def career_talk(quest: Career_talk) -> list[Response_CareerTalk]:
     for item in quest.career_talk:
         career_talk_id = item.career_talk_id
         # 执行查询，应用过滤器来缩小搜索范围
-        _jobs = qdrant_connection.query_points(
+        _jobs = qdrant_client.query_points(
             collection_name='job_2024_1109',
-            query=embed_model.create_embedding(value)['data'][0]['embedding'],  # <--- Dense vector
+            query=vectorize(value),  # <--- Dense vector
             query_filter=models.Filter(
                 must=[
-                    FieldCondition(
-                        key="career_talk[]", match=models.MatchValue(value=career_talk_id)
-                    ),
-                    # FieldCondition(
-                    #     key="end_time",
-                    #     range=models.Range(
-                    #         gte=datetime.datetime.now().timestamp(),
-                    #         lt=None,
-                    #         lte=None,
-                    #     ),
-                    # ),
-                    # FieldCondition(
-                    #     key='is_publish',
-                    #     match=MatchValue(value=1)
-                    # ),
-                    # FieldCondition(
-                    #     key='job_status',
-                    #     range=models.Range(
-                    #         gt=0,
-                    #     ),
-                    # ),
+                    models.FieldCondition(key="career_talk[]", match=models.MatchValue(value=career_talk_id)),
+                    models.FieldCondition(key="end_time",range=models.Range(gte=datetime.datetime.now().timestamp(),),),
+                    models.FieldCondition(key='is_publish',match=models.MatchValue(value=1)),
+                    models.FieldCondition(key='job_status',range=models.Range(gt=0)),
                 ],
             ),
-            limit=10  # 限制返回结果的数量
+            using='job_descript',
+            score_threshold=0.5,
+            with_payload=["publish_id"],
+            limit=5  # 限制返回结果的数量
         ).points
         job_ids = [publish_id.payload['publish_id'] for publish_id in _jobs]
 

@@ -4,7 +4,7 @@
 # @File    : by_qdrant.py
 
 """
-这里是文件说明
+注入Qdrant客户端
 """
 
 

@@ -24,11 +24,16 @@ router = APIRouter()
 
 from qdrant_client import QdrantClient, models
 from qdrant_client.http.models import Filter, FieldCondition, MatchValue
-qdrant_connection = QdrantClient(url="192.168.100.111:6333")
+from app.db.qdrant import QdrantClientManager
+from app.config import settings
+
+qdrant_connection = QdrantClient(url="192.168.100.146:6333")
 
 from xinference.client import Client
 client2 = Client("http://192.168.100.111:9997")
 embed_model = client2.get_model("bge-small-zh-v1.5")
+embed_model_pro = client2.get_model("bge-m3")
+COLLECTION_NAME = settings.COLLECTION_TEST
 
 
 
@@ -213,58 +218,65 @@ async def job_recom_student(request: StudentJobModel):
 
     student = await collection.find_one({"student_key": student_key})
 
-    job_filter = Filter(
-                must=[
-                    FieldCondition(
-                        key='is_publish',
-                        match=MatchValue(value=1)
-                    ),
-                    FieldCondition(
-                        key='job_status',
-                        range=models.Range(
-                            gt=0,
-                        ),
-                    ),
-                    FieldCondition(
-                        key="end_time",
-                        range=models.Range(
-                            gt=None,
-                            gte=datetime.datetime.now().timestamp(),
-                            lt=None,
-                            lte=None,
-                        ),
+    with QdrantClientManager.get_client_context() as qdrant_client:
+        try:
+            job_filter = Filter(
+                        must=[
+                            FieldCondition(
+                                key='is_publish',
+                                match=MatchValue(value=1)
+                            ),
+                            FieldCondition(
+                                key='job_status',
+                                range=models.Range(
+                                    gt=0,
+                                ),
+                            ),
+                            FieldCondition(
+                                key="end_time",
+                                range=models.Range(
+                                    gt=None,
+                                    gte=datetime.datetime.now().timestamp(),
+                                    lt=None,
+                                    lte=None,
+                                ),
+                            )
+                        ]
                     )
-                ]
-            )
-    if student is None:
-        raise HTTPException(status_code=404, detail="学生档案不存在")
+            if student is None:
+                raise HTTPException(status_code=404, detail="学生档案不存在")
 
-    if request.zh == 1:
-        my_list = ["专业","安全工程", "电子信息", "计算机", "生物"]
-        random_value = random.choice(my_list)
-        value = "综合"
+            if request.zh == 1:
+                my_list = ["专业","安全工程", "电子信息", "计算机", "生物"]
+                random_value = random.choice(my_list)
+                value = "综合"
 
-        _jobs = qdrant_connection.query_points(
-            collection_name='job_test',
-            query=embed_model.create_embedding(random_value)['data'][0]['embedding'],  # <--- Dense vector
-            # query_filter= job_filter
-        ).points
-        job_list = [publish_id.payload['publish_id'] for publish_id in _jobs]
+                _jobs = qdrant_connection.query_points(
+                    collection_name=COLLECTION_NAME,
+                    query=embed_model_pro.create_embedding(random_value)['data'][0]['embedding'],  # <--- Dense vector
+                    # query_filter= job_filter
+                    using='job_descript',
+                ).points
+                job_list = [publish_id.payload['publish_id'] for publish_id in _jobs]
 
-        logger.info(f"推荐岗位：{job_list}")
-        return job_list
-    else:
-        field_value = "无专业"
+                logger.info(f"推荐岗位：{job_list}")
+                return job_list
+            else:
+                field_value = "无专业"
 
-        _jobs = qdrant_connection.query_points(
-            collection_name='job_test',
-            query=embed_model.create_embedding(field_value)['data'][0]['embedding'],  # <--- Dense vector
-            # query_filter=job_filter
-        ).points
+                _jobs = qdrant_connection.query_points(
+                    collection_name=COLLECTION_NAME,
+                    query=embed_model_pro.create_embedding(field_value)['data'][0]['embedding'],  # <--- Dense vector
+                    # query_filter=job_filter
+                    using='job_descript',
+                ).points
 
-        job_list =  [publish_id.payload['publish_id'] for publish_id in _jobs]
-        logger.info(f"推荐岗位：{job_list}")
-        return random.sample(job_list, len(job_list))
+                job_list =  [publish_id.payload['publish_id'] for publish_id in _jobs]
+                logger.info(f"推荐岗位：{job_list}")
+                return random.sample(job_list, len(job_list))
+        except Exception as e:
+            logger.error(f"推荐岗位时出错: {str(e)}")
+            raise
 
 
 

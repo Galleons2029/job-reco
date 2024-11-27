@@ -8,22 +8,22 @@
 """
 
 import logging
-from fastapi import APIRouter, FastAPI, Request
+from fastapi import FastAPI, Request, APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
 from app.api.v1.endpoints import (
-    users, table_fill_api, bilateral_meeting, students_api, chat, student_v2, recom, jobs_api
+    users, table_fill_api, bilateral_meeting, students_api, chat, student_v2
 )
 from app.api.v2.endpoints import (
-    jobs_api_v2, meeting_api
+    jobs_api_v2, meeting_api, recom
 )
 
 # api_router = APIRouter()
 api_router = FastAPI(
     title="AI就业平台",
     summary="包括AI填表、岗位推荐",
-    version="0.0.3",
+    version="1.1.0",
 )
 
 
@@ -33,10 +33,10 @@ api_router.include_router(students_api.router, prefix="/zsk/v1/student", tags=["
 # api_router.include_router(mongodb.router, prefix="/zsk/v1/document", tags=["document-v1"])
 api_router.include_router(chat.router, prefix="/zsk/v1/chat", tags=["chat-v1"])
 api_router.include_router(users.router, prefix="/zsk/v1/user", tags=["user-v1"])
-api_router.include_router(student_v2.router, prefix="/zsk/v2/student", tags=["student-v2"])
-api_router.include_router(recom.router, prefix="/zsk/v2/recom", tags=["recom-v2"])
-api_router.include_router(jobs_api_v2.router, prefix="/zsk/v2/jobs", tags=["jobs-v2"])
-api_router.include_router(meeting_api.router, prefix="/zsk/v2/meetings", tags=["meetings-v2"])
+api_router.include_router(student_v2.router, prefix="/test/zsk/v2/student", tags=["student-v2"])
+api_router.include_router(recom.router, prefix="/test/zsk/v2/recom", tags=["recom-v2"])
+api_router.include_router(jobs_api_v2.router, prefix="/test/zsk/v2/jobs", tags=["jobs-v2"])
+api_router.include_router(meeting_api.router, prefix="/test/zsk/v2/meetings", tags=["meetings-v2"])
 
 
 
@@ -81,7 +81,8 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
         "routers:api_router",
-        host="192.168.100.146",
+        host="0.0.0.0",
         port=9000,
-        reload=True
+        reload=True,
+        # workers=4  # 增加工作进程数以提高并发性能
     )
