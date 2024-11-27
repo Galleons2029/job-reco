@@ -141,7 +141,7 @@ async def create_job(job: JobInModel = Body(...)):
 def job_fromlist(description: str):
 
     _jobs = client.query_points(
-        collection_name='job_2024_1109',
+        collection_name='job_2024_1119',
         query=embed_model_pro.create_embedding(description)['data'][0]['embedding'],  # <--- Dense vector
         query_filter=Filter(
             must=[
@@ -156,7 +156,8 @@ def job_fromlist(description: str):
             ]
         ),
         with_payload=True,
-        limit=50
+        limit=50,
+        using = 'job_descript',
     ).points
     job_list = [publish_id.payload['publish_id'] for publish_id in _jobs]
     return random.sample(job_list, len(job_list))
@@ -201,8 +202,9 @@ async def list_students_bymajor(Major: Major2StudentModel) -> List[int]:
     """
 
     _jobs = client.query_points(
-        collection_name='job_2024_1109',
+        collection_name='job_2024_1119',
         query=embed_model_pro.create_embedding(Major.major)['data'][0]['embedding'],  # <--- Dense vector
+        using='job_descript',
     ).points
 
     return [publish_id.payload['publish_id'] for publish_id in _jobs]

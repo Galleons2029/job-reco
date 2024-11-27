@@ -73,7 +73,7 @@ class EmbeddingClientManager:
         if cls._client is None:
             try:
                 cls._client = Client("http://192.168.100.111:9997")
-                cls._embed_model = cls._client.get_model(settings.EMBEDDING_MODEL_ID)
+                cls._embed_model = cls._client.get_model("bge-m3")
             except Exception as e:
                 logger.error(f"Failed to initialize Xinference client: {str(e)}")
                 raise
