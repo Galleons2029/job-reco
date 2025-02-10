@@ -1,5 +1,8 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file="../.env", env_file_encoding="utf-8")
@@ -9,8 +12,9 @@ class Settings(BaseSettings):
     VERSION:str = "1.0.0"
 
     # MongoDB configs
-    MONGO_DATABASE_HOST: str = "mongodb://root:weyon%40mongodb@192.168.15.79:27017,192.168.15.79:27018,192.168.15.79:27019/?replicaSet=app"
-#    MONGO_DATABASE_HOST: str = "mongodb+srv://galleons777:galleons@cluster0.b1w6ev1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    # MONGO_DATABASE_HOST: str = "mongodb://root:weyon%40mongodb@192.168.15.79:27017,192.168.15.79:27018,192.168.15.79:27019/?replicaSet=app"
+    # MONGO_DATABASE_HOST: str = "mongodb+srv://galleons777:galleons@cluster0.b1w6ev1.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    MONGO_DATABASE_HOST: str = os.getenv("MONGO_DATABASE_HOST")
     MONGO_DATABASE_NAME: str = "admin"
     MONGO_DATABASE_API_PORT: int = 27016
 
@@ -20,14 +24,10 @@ class Settings(BaseSettings):
     Silicon_api_key3: str | None = "sk-orbrjhjcqmgezlurbvsmfxqmnjwkmjdrypwdiwvyfarkbnag"
     Silicon_base_url: str | None = "https://api.siliconflow.cn/v1"
 
+    Silicon_model_v1: str | None = "Qwen/Qwen2.5-72B-Instruct-128K"
+    Silicon_model_mini: str | None = "Qwen/Qwen2.5-7B-Instruct"
+    Silicon_model_rerank: str | None = "BAAI/bge-reranker-v2-m3"
 
-
-    Silicon_model_v1: str | None = "Qwen/Qwen2-72B-Instruct"
-
-    # CometML config
-    COMET_API_KEY: str | None = "l0vgJvULBTl8tJfYg6LDG90BV"
-    COMET_WORKSPACE: str | None = "galleons2029"
-    COMET_PROJECT: str | None = "general"
 
     # Embeddings config
     #EMBEDDING_MODEL_ID: str = "sentence-transformers/all-MiniLM-L6-v2"
@@ -48,19 +48,19 @@ class Settings(BaseSettings):
     RABBITMQ_QUEUE_NAME: str = "default"
 
     # QdrantDB config
-    QDRANT_DATABASE_HOST: str = "192.168.100.146"
+    QDRANT_DATABASE_HOST: str = "192.168.15.93"
     QDRANT_DATABASE_PORT: int = 6333
-    QDRANT_DATABASE_URL: str = "http://192.168.100.146:6333"
+    QDRANT_DATABASE_URL: str = "http://192.168.15.93:6333"
     QDRANT_CLOUD_URL: str = "str"
     USE_QDRANT_CLOUD: bool = False
     QDRANT_APIKEY: str | None = None
     COLLECTION_TEST: str = "job_test3"
-    COLLECTION_NAME: str = "job_2024_1119"
+    COLLECTION_NAME: str = "job_2024_1129"
 
     # LLM Model config
     TOKENIZERS_PARALLELISM: str = "false"
     HUGGINGFACE_ACCESS_TOKEN: str | None = None
-    MODEL_TYPE: str = "Qwen/Qwen2-72B-Instruct"
+    MODEL_TYPE: str = "Qwen/Qwen2.5-72B-Instruct"
 
     # RAG config
     TOP_K: int = 5
@@ -68,10 +68,15 @@ class Settings(BaseSettings):
     EXPAND_N_QUERY: int = 5
 
 
-    QWAK_DEPLOYMENT_MODEL_ID: str = "copywriter_model"
-    QWAK_DEPLOYMENT_MODEL_API: str = (
-        "https://models.llm-twin.qwak.ai/v1/copywriter_model/default/predict"
-    )
+    MONGO_MAX_POOL_SIZE: int = 100
+    MONGO_MIN_POOL_SIZE: int = 10
+
+    # MongoDB monitoring configs
+    METRICS_PORT: int = 9090
+    MONGO_MAX_RETRIES: int = 3
+    MONGO_RETRY_INITIAL_DELAY: float = 0.1
+    MONGO_RETRY_MAX_DELAY: float = 2.0
+    MONGO_RETRY_EXPONENTIAL_BASE: float = 2
 
 settings = Settings()
 
@@ -81,13 +86,14 @@ settings = Settings()
 from functools import lru_cache
 
 class QdrantSettings(BaseSettings):
-    QDRANT_HOST: str = "192.168.100.146"
+    QDRANT_HOST: str = "192.168.15.93"
     QDRANT_PORT: int = 6333
     QDRANT_GRPC_PORT: int = 6334
     QDRANT_API_KEY: str | None = None
     QDRANT_HTTPS: bool = False
     QDRANT_TIMEOUT: int = 10
     QDRANT_PREFER_GRPC: bool = False
+    QDRANT_CLOUD_API_KEY: str | None = "UQk19x-E7TqcNAvuYGDPPeXLWk0oy0T6ZlBp5-33IWdFVGt8cjEp7g"
 
     class Config:
         env_prefix = "QDRANT_"

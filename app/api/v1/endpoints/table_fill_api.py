@@ -10,31 +10,27 @@ TODO: 完善请求异常处理机制
 参考： https://fastapi.tiangolo.com/tutorial/handling-errors/#reuse-fastapis-exception-handlers
 """
 
-import os
-from fastapi import FastAPI, Body, HTTPException, status, APIRouter
-from fastapi.responses import Response
+from fastapi import Body, HTTPException, status, APIRouter
 from typing import List
 import logging
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-import json
 import random
-from bson import ObjectId
 import concurrent.futures
 from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnableParallel
 from langchain_openai import ChatOpenAI
 
-from app.config import settings
-from app.llm.prompts import prompts
+from app.services.llm.prompts import prompts
 from app.db.models.models import JobInModel, JobOutModel, Job2StudentModel, Major2StudentModel, QueryRequest
+
 
 router = APIRouter()
 
-from qdrant_client import QdrantClient, models
+from qdrant_client import QdrantClient
 from qdrant_client.http.models import Filter, FieldCondition, MatchValue
 from app.db.qdrant import QdrantClientManager
 
@@ -164,7 +160,7 @@ def job_fromlist(description: str):
                 ),
                 with_payload=True,
                 limit=50,
-                using='job_descript',
+                using='job_name',
             ).points
             job_list = [publish_id.payload['publish_id'] for publish_id in _jobs]
             return random.sample(job_list, len(job_list))
@@ -215,7 +211,7 @@ async def list_students_bymajor(Major: Major2StudentModel) -> List[int]:
             _jobs = qdrant_client.query_points(
                 collection_name='job_2024_1119',
                 query=embed_model_pro.create_embedding(Major.major)['data'][0]['embedding'],  # <--- Dense vector
-                using='job_descript',
+                using='job_name',
             ).points
 
             return [publish_id.payload['publish_id'] for publish_id in _jobs]

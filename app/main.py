@@ -1,16 +1,19 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from xinference.thirdparty.deepseek_vl.serve.app_modules.presets import description
 
 from app.api.routers import api_router
 from app.config import settings
+from app.db.mongodb import lifespan, get_database_instance
+from app.db.mongodb import MongoDBManager
 
 import logging
 
 app = FastAPI(title=settings.PROJECT_NAME,
               description="基于大模型岗位推送平台",
               version=settings.VERSION,
+              lifespan=lifespan
               )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
@@ -49,6 +52,12 @@ async def validation_exception_handler(request, exc: ValidationError):
         status_code=422,
         content={'detail': error_messages}
     )
+
+@app.get("/health")
+async def health_check(db = Depends(get_database_instance)):
+    """增强的健康检查端点"""
+    health_status = await MongoDBManager.check_health()
+    return health_status
 
 if __name__ == "__main__":
     import uvicorn

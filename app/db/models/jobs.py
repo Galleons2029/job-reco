@@ -4,7 +4,7 @@
 # @File    : jobs.py
 
 """
-这里是文件说明
+岗位数据模型
 """
 
 import datetime

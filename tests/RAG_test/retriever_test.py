@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 from langchain.globals import set_verbose
-from app.rag.retriever import VectorRetriever
+from app.services.rag import VectorRetriever
 
 from app.utils.logging import get_logger
 

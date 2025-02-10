@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, APIRouter, Request
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, Field, ConfigDict
 from typing import Optional, Dict, Any, List
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
@@ -36,28 +36,41 @@ embed_model_pro = client2.get_model("bge-m3")
 COLLECTION_NAME = settings.COLLECTION_TEST
 
 
-
-# Pydantic models
-class StudentCreateModel(BaseModel):
+class StudentBase(BaseModel):
+    school_id: int
     student_key: str
-    name: str
-    sex: str
-    ID_card: str
-    nationality: str
-    province_city: str
-    phone_number: str
-    email: str
-    education: str
-    institute: str
-    major_number: str
-    major: str
-    student_number: str
-    graduate_year: int
-    poor_type: str
-    normal_type: Optional[str] = ""
-    politics_status: str
-    employ_intention: Dict[str, Any]
-    resume: Dict[str, Any]
+    name: str = Field(validation_alias='xm',description="身份证号")
+    sex: str| None = Field(None, validation_alias='xb',description="性别")
+    ID_card: str | None = Field(None, validation_alias='sfzh',description="身份证号")
+    nationality: str | None = Field(None, validation_alias='mz',description="名族")
+    province_city: str | None = None
+    phone_number: str | None = None
+    email: str | None = None
+    education: str | None = Field(None, validation_alias='xl',description="学历")
+    institute: str | None = Field(None, validation_alias='szyx',description="所在院系")
+    major_number: str | None = Field(None, validation_alias='zydm',description="专业代码")
+    major: str = Field(None, validation_alias='zy',description="身份证号")
+    student_number: str | None = Field(None, validation_alias='xh',description="学号")
+    graduate_year: int | None = None
+    poor_type: str | None = Field(None, validation_alias='knslb',description="困难生类别")
+    normal_type: Optional[str] = Field(None, validation_alias='sfslb',description="师范生类别")
+    politics_status: str | None = Field(None, validation_alias='zzmm',description="身份证号")
+    employ_intention: Dict[str, Any] | None = None
+    resume: Dict[str, Any] | None = None
+
+    model_config = ConfigDict(
+        populate_by_name=True,  # 允许使用原始名称创建实例
+        validate_assignment=True,
+        str_strip_whitespace=True,
+        extra='ignore',
+    )
+
+
+class StudentCreateModel(BaseModel):
+    school_id: str
+    student_key: str
+    data: StudentBase
+
 
 class StudentUpdateModel(BaseModel):
     school_id: str
@@ -90,13 +103,13 @@ def get_collection(collection_name: str):
 
 
 # Create a new student
-@router.post("/creat_students/")
-async def create_student(school_id: str, student: StudentCreateModel):
-    collection = db[school_id]
+@router.post("/create_students/")
+async def create_student(student: StudentCreateModel):
+    collection = db[student.school_id]
     existing_student = await collection.find_one({"student_key": student.student_key})
     if existing_student:
         raise HTTPException(status_code=400, detail="Student already exists.")
-    await collection.insert_one(student.dict())
+    await collection.insert_one(student.data.model_dump())
     return {"message": "Student created successfully"}
 
 # Read student data
@@ -125,20 +138,53 @@ async def update_student(student_update: StudentUpdateModel):
 
 
 # 学生信息修改同步
+# 字段映射配置
+FIELD_MAPPING = {
+    "zy": "major",
+    "xm": "name",
+    "xb": "sex",
+    "sfzh": "ID_card",
+    "mz": "nationality",
+    "ssdq": "province_city",
+    "mobilephone": "phone_number",
+    "dzyx": "email",
+    "xl": "education",
+    "xy": "institute",
+    "zydm": "major_number",
+    "xh": "student_number",
+    "bynf": "graduate_year",
+    "pkbz": "poor_type",
+    "zzmm": "politics_status"
+}
+
 @router.post("/update_student_record/")
 async def update_student_record(update_data: UpdateDataModel):
-
     collection = db[str(update_data.school_id)]
-
+    
+    # 转换字段名
+    transformed_data = {}
+    for key, value in update_data.data.items():
+        # 如果key在映射字典中，使用映射后的字段名
+        # 否则保持原字段名
+        transformed_key = FIELD_MAPPING.get(key, key)
+        transformed_data[transformed_key] = value
+    
     # 执行更新操作
     result = await collection.update_one(
         {"student_key": update_data.student_key},
-        {"$set": update_data.data}         # 使用请求体中的 data 字段进行更新
+        {"$set": transformed_data}
     )
-    if result.raw_result['updatedExisting'] == 0:
-         raise HTTPException(status_code=404, detail="学生文档不存在")
+    
+    if result.matched_count == 0:  # 使用 matched_count 替代 raw_result['updatedExisting']
+        raise HTTPException(status_code=404, detail="学生文档不存在")
 
-    return {"message": "学生档案修改成功。"}
+    return {
+        "message": "学生档案修改成功",
+        "transformed_fields": {
+            k: FIELD_MAPPING[k] for k in update_data.data.keys() 
+            if k in FIELD_MAPPING
+        }
+    }
 
 
 
@@ -208,75 +254,74 @@ class StudentJobModel(BaseModel):
     zycp: bool
 
 
-import random
-
 
 @router.post("/job_recom/")
 async def job_recom_student(request: StudentJobModel):
     collection = get_collection(str(request.school_id))
-    student_key = request.student_key
+    student = await collection.find_one({"student_key": request.student_key})
 
-    student = await collection.find_one({"student_key": student_key})
+    if student is None:
+        raise HTTPException(status_code=404, detail="学生档案不存在")
 
-    with QdrantClientManager.get_client_context() as qdrant_client:
-        try:
+    try:
+        # 获取 employ_intention 字段
+        employ_intention = student.get('employ_intention')
+        if not employ_intention:
+            logger.warning(f"学生 {request.student_key} 没有就业意向数据")
+            return []
+
+        # 获取第一个 intention 记录
+        first_intention = None
+        for key, value in employ_intention.items():
+            if key.startswith('intention_'):
+                first_intention = value
+                break
+
+        if not first_intention:
+            logger.warning(f"学生 {request.student_key} 的就业意向数据格式不正确")
+            return []
+
+        # 获取 second_category
+        second_category = first_intention.get('second_category')
+        if not second_category:
+            logger.warning(f"学生 {request.student_key} 的就业意向没有 second_category")
+            return []
+
+        # 使用 second_category 进行职位推荐
+        with QdrantClientManager.get_client_context() as qdrant_client:
             job_filter = Filter(
-                        must=[
-                            FieldCondition(
-                                key='is_publish',
-                                match=MatchValue(value=1)
-                            ),
-                            FieldCondition(
-                                key='job_status',
-                                range=models.Range(
-                                    gt=0,
-                                ),
-                            ),
-                            FieldCondition(
-                                key="end_time",
-                                range=models.Range(
-                                    gt=None,
-                                    gte=datetime.datetime.now().timestamp(),
-                                    lt=None,
-                                    lte=None,
-                                ),
-                            )
-                        ]
+                must=[
+                    FieldCondition(
+                        key='is_publish',
+                        match=MatchValue(value=1)
+                    ),
+                    FieldCondition(
+                        key='job_status',
+                        range=models.Range(gt=0)
+                    ),
+                    FieldCondition(
+                        key="end_time",
+                        range=models.Range(
+                            gte=datetime.datetime.now().timestamp()
+                        )
                     )
-            if student is None:
-                raise HTTPException(status_code=404, detail="学生档案不存在")
+                ]
+            )
 
-            if request.zh == 1:
-                my_list = ["专业","安全工程", "电子信息", "计算机", "生物"]
-                random_value = random.choice(my_list)
-                value = "综合"
+            _jobs = qdrant_connection.query_points(
+                collection_name=COLLECTION_NAME,
+                query=embed_model_pro.create_embedding(second_category)['data'][0]['embedding'],
+                query_filter=job_filter,
+                using='job_descript'
+            ).points
 
-                _jobs = qdrant_connection.query_points(
-                    collection_name=COLLECTION_NAME,
-                    query=embed_model_pro.create_embedding(random_value)['data'][0]['embedding'],  # <--- Dense vector
-                    # query_filter= job_filter
-                    using='job_descript',
-                ).points
-                job_list = [publish_id.payload['publish_id'] for publish_id in _jobs]
+            job_list = [publish_id.payload['publish_id'] for publish_id in _jobs]
+            logger.info(f"根据意向 {second_category} 推荐岗位：{job_list}")
+            return job_list
 
-                logger.info(f"推荐岗位：{job_list}")
-                return job_list
-            else:
-                field_value = "无专业"
-
-                _jobs = qdrant_connection.query_points(
-                    collection_name=COLLECTION_NAME,
-                    query=embed_model_pro.create_embedding(field_value)['data'][0]['embedding'],  # <--- Dense vector
-                    # query_filter=job_filter
-                    using='job_descript',
-                ).points
-
-                job_list =  [publish_id.payload['publish_id'] for publish_id in _jobs]
-                logger.info(f"推荐岗位：{job_list}")
-                return random.sample(job_list, len(job_list))
-        except Exception as e:
-            logger.error(f"推荐岗位时出错: {str(e)}")
-            raise
+    except Exception as e:
+        logger.error(f"推荐岗位时出错: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"推荐岗位失败: {str(e)}")
 
 
 

@@ -78,14 +78,15 @@ async def career_talk(
     for item in quest.career_talk:
         career_talk_id = item.career_talk_id
         # 执行查询，应用过滤器来缩小搜索范围
+        vector = await vectorize(value)
         _jobs = qdrant_client.query_points(
-            collection_name='job_2024_1109',
-            query=vectorize(value),  # <--- Dense vector
+            collection_name='job_test3',
+            query=vector,  # <--- Dense vector
             query_filter=models.Filter(
                 must=[
                     models.FieldCondition(key="career_talk[]", match=models.MatchValue(value=career_talk_id)),
                     models.FieldCondition(key="end_time",range=models.Range(gte=datetime.datetime.now().timestamp(),),),
-                    models.FieldCondition(key='is_publish',match=models.MatchValue(value=1)),
+                    models.FieldCondition(key='is_publish',match=models.MatchValue(value=True)),
                     models.FieldCondition(key='job_status',range=models.Range(gt=0)),
                 ],
             ),

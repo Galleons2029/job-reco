@@ -10,10 +10,18 @@ from qdrant_client.http.models import Filter, FieldCondition, MatchValue
 from qdrant_client.http.exceptions import UnexpectedResponse
 
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from qdrant_client import QdrantClient
 from app.api.v2.dependencies.by_qdrant import get_qdrant_client
 from qdrant_client.http.models import Filter, FieldCondition, MatchValue
+
+import logging
+# 配置日志
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 

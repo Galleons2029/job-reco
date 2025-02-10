@@ -7,7 +7,7 @@
 专用于用户查询测试
 """
 
-from app.rag.query_expansion import QueryExpansion
+from app.services.rag.query_expansion import QueryExpansion
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(
@@ -23,8 +23,8 @@ query_expander = QueryExpansion()
 
 query = "目前云研科技公司有多少人？"
 
-from app.llm.chain import GeneralChain
-from app.llm.prompt_templates import QueryExpansionTemplate
+from app.services.llm import GeneralChain
+from app.services.llm import QueryExpansionTemplate
 
 query_expansion_template = QueryExpansionTemplate()
 prompt_template = query_expansion_template.create_template(3)

@@ -27,7 +27,7 @@ logging.basicConfig(
 )
 
 # 初始化连接
-qdrant_connection = QdrantClient(url="192.168.100.146:6333")
+qdrant_connection = QdrantClient(url="192.168.15.93:6333")
 from xinference.client import Client
 
 xinference_connection_1 = Client("http://192.168.100.111:9997")
@@ -131,7 +131,7 @@ def batch_upload_points(points: List[models.PointStruct], collection_name: str, 
 def main():
     try:
         # 读取数据
-        job_names = pd.read_csv("/home/weyon2/下载/c_job_publish(5).csv")
+        job_names = pd.read_csv("/home/weyon2/DATA/table_data/jobs/c_job_publish(6).csv")
         job_names.dropna(subset=['job_name', 'job_descript', 'job_require'], inplace=True)
         json_job = job_names.to_dict(orient='records')
         json_job = json_job
@@ -142,7 +142,7 @@ def main():
         # 分批上传
         batch_upload_points(
             points=points,
-            collection_name="job_2024_1119",
+            collection_name="job_2024_1129",
             # collection_name="job_test2",
             batch_size=100,
             max_retries=3

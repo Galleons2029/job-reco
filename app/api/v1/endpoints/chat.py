@@ -6,10 +6,14 @@
 """
 这里是文件说明
 """
-from fastapi import APIRouter, Depends, HTTPException, Body, HTTPException, status
-from typing import List
+from fastapi import APIRouter, Body, status
+from typing import List, AsyncGenerator
 from pydantic import BaseModel, ConfigDict, Field
-from app.llm.inference_pipeline import WEYON_LLM
+from app.services.llm import
+from fastapi.responses import StreamingResponse
+import json
+import asyncio
+import time
 
 
 class Query(BaseModel):
@@ -25,7 +29,7 @@ class Query(BaseModel):
             "example": {
                 "query": "云研技术团队有什么特点？",
                 "collections": [
-                    "vector_posts"
+                    "zsk_1"
                 ],
                 "enable_rag": True,
                 "enable_evaluation": False,
@@ -33,6 +37,45 @@ class Query(BaseModel):
             }
         },
     )
+
+
+
+async def create_chat_chunks(content: str) -> AsyncGenerator[str, None]:
+    """
+    将内容切分成小块并按照 OpenAI 格式进行流式输出
+    """
+    # 模拟分词处理
+    words = content.split()
+
+    for i, word in enumerate(words):
+        # 构造符合 OpenAI 格式的响应块
+        chunk = {
+            "id": i,
+            "object": "chat.completion.chunk",
+            "created": int(time.time()),  # 使用实际时间戳
+            "model": "qwen-pro",
+            "choices": [{
+                "index": i,
+                "delta": {
+                    "content": word + " "
+                },
+                "finish_reason": None if i < len(words) - 1 else "stop"
+            }]
+        }
+
+        # 第一个块需要包含role
+        if i == 0:
+            chunk["choices"][0]["delta"]["role"] = "assistant"
+
+        # 转换为 SSE 格式
+        yield f"data: {json.dumps(chunk)}\n\n"
+
+        # 模拟输出延迟
+        await asyncio.sleep(0.1)
+
+    # 发送结束标记
+    yield "data: [DONE]\n\n"
+
 
 
 router = APIRouter()
@@ -58,4 +101,13 @@ async def predict(messages: Query = Body(...)):
         enable_evaluation=messages.enable_evaluation,
         enable_monitoring=messages.enable_monitoring,
     )
-    return answer
+
+
+    return StreamingResponse(
+        create_chat_chunks(answer),
+        media_type="text/event-stream"
+    )
+
+
+
+

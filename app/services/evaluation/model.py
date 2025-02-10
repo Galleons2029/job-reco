@@ -1,7 +1,7 @@
 from langchain_openai import ChatOpenAI
 
-from app.llm.chain import GeneralChain
-from app.llm.prompt_templates import LLMEvaluationTemplate
+from app.services.llm import GeneralChain
+from app.services.llm import LLMEvaluationTemplate
 from app.config import settings
 
 

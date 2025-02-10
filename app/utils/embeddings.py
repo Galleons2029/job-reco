@@ -13,6 +13,7 @@ from xinference.client import Client
 import numpy as np
 
 client = Client("http://192.168.100.111:9997")
+embed_model_raw = client.get_model(settings.EMBEDDING_MODEL_ID)
 embed_model = client.get_model(settings.EMBEDDING_MODEL_ID)
 
 #from fastembed import TextEmbedding

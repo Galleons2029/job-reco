@@ -1,7 +1,7 @@
 from langchain_openai import ChatOpenAI
 
-import app.llm.prompt_templates as templates
-from app.llm.chain import GeneralChain
+import app.services.llm.prompt_templates as templates
+from app.services.llm import GeneralChain
 from app.config import settings
 
 

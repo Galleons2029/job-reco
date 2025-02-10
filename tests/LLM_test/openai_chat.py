@@ -5,7 +5,7 @@ SERVER_URL = "http://192.168.100.111:8001/v1/chat/completions"
 
 request_data = {
     "model": "qwen2-pro",
-    #"stream": True,
+    "stream": True,
     "messages": [
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user", "content": "你好啊！你是谁？"}
@@ -18,24 +18,23 @@ client = OpenAI(api_key="sk-gxijztovbtakciuwjwwqyaoxarjfvhuargxkoawhuzsanssm", b
 
 from langchain_openai import ChatOpenAI
 
-if __name__ == "__main__":
-    response = requests.post(SERVER_URL, json=request_data)
-    print(response.json())
+# if __name__ == "__main__":
+#     response = requests.post(SERVER_URL, json=request_data)
+#     print(response.json())
 
-#if __name__ == "__main__":
-#    response = requests.post(SERVER_URL, json=request_data, stream=True)
-#    for chunk in response.iter_lines():
-#        print(chunk.decode("utf-8"))
-#     response = client.chat.completions.create(
-#         model='alibaba/Qwen1.5-110B-Chat',
-#         messages=[
-#             {'role': 'user', 'content': "抛砖引玉是什么意思呀"}
-#         ],
-#         stream=False
-#     )
-#
-#     #for chunk in response:
-#     #    print(chunk.choices[0].delta.content, end='')
+if __name__ == "__main__":
+   # response = requests.post(SERVER_URL, json=request_data, stream=True)
+   response = client.chat.completions.create(
+    model='Qwen/Qwen2.5-7B-Instruct',
+    messages=[
+        {'role': 'user', 'content': "抛砖引玉是什么意思呀"}
+    ],
+    stream=True
+)
+
+   for chunk in response:
+       print(chunk.choices[0].delta.content, end='')
+   print(response)
 #     print(type(response))
 #     print(response)
 #     print(response.choices)

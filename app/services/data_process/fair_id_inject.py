@@ -33,7 +33,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 读取CSV文件
-df = pd.read_csv("/home/weyon2/DATA/test_data/c_jobfair_apply_job.csv")
+df = pd.read_csv("/home/weyon2/DATA/table_data/jobs/2024-11-29-17-53-42_EXPORT_CSV_16607340_368_0.csv")
 
 
 @retry(
@@ -161,7 +161,7 @@ def main():
 
         process_dataframe_in_batches(
             df=df,
-            collection_name="job_test3",
+            collection_name="job_2024_1129",
             batch_size=50
         )
 

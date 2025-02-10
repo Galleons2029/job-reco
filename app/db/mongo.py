@@ -1,5 +1,10 @@
+from pydantic.v1 import BaseModel
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
+
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
+from pymongo.collection import Collection
+from typing import Optional, Any, Mapping
 
 from app.config import settings
 
@@ -32,4 +37,21 @@ class MongoDatabaseConnector:
 
 
 connection = MongoDatabaseConnector()
+
+
+class Database:
+    aclient: Optional[AsyncIOMotorClient] = None
+
+    def get_collection(self) -> AsyncIOMotorCollection[Mapping[str, Any] | Any]:
+        return self.aclient["resumes"]["resumes_test"]
+
+    async def connect(self):
+        self.aclient = AsyncIOMotorClient(settings.MONGO_DATABASE_HOST)
+
+    async def disconnect(self):
+        if self.aclient:
+            self.aclient.close()
+
+
+db = Database()
 

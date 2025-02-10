@@ -16,7 +16,6 @@ from typing_extensions import Annotated
 from bson import ObjectId
 from uuid import uuid4
 from app.db.models.user import UserBase
-from app.db.models.resumes import ResumeModel
 
 # 表示数据库中的 ObjectId 字段。
 # 它将在模型中表示为 `str`，以便可以序列化为 JSON。

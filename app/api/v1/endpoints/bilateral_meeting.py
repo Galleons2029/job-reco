@@ -10,25 +10,20 @@ TODO: 完善请求异常处理机制
 参考： https://fastapi.tiangolo.com/tutorial/handling-errors/#reuse-fastapis-exception-handlers
 """
 
-import os
-from fastapi import Body, HTTPException, status, APIRouter, Depends
-from fastapi.responses import Response
+from fastapi import Body, APIRouter
 from typing import List
-import datetime
 
-from langchain_core.output_parsers import StrOutputParser, JsonOutputParser
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
 from app.api.v1.endpoints.table_fill_api import client
-from app.config import settings
-from app.llm.prompts import prompts
+from app.services.llm.prompts import prompts
 from app.db.models.jobs import (
     JobRequestModel,
-    Bilateral_record, BilateralCollection, Bilateral_delete_record, BilateralDeleteCollection,
-    CareerTalkRecord, CareerTalkCollection, CareerTalkDelete, CareerTalkDeleteCollection
+    BilateralCollection, Bilateral_delete_record, CareerTalkCollection, CareerTalkDelete
 )
-from app.api.v1.dependencies import get_qdrant_client, get_xinference_client
+from app.api.v1.dependencies import get_xinference_client
 from app.utils.embeddings import embedd_text
 
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -65,8 +60,8 @@ def qdrant_search(query: str, collection: str) -> dict:
 
 def job_in_bilateral_list(description: str):
     _jobs = client.query_points(
-        collection_name='job_2024_1109',
-        query=embedd_text(description),  # <--- Dense vectorgp
+        collection_name='job_2024_1119',
+        query=embedd_text(description),  # <--- Dense vector
         # query_filter=Filter(
         #     must=[
         #         # FieldCondition(
@@ -102,7 +97,7 @@ def job_in_bilateral_list(description: str):
 
     # 使用第二个命名向量对这些点重新排序
     reordered_results = client.query_points(
-        collection_name='job_2024_1109',
+        collection_name='job_2024_1119',
         query=embedd_text(description),  # <--- Dense vector
         # query_filter=Filter(
         #     must=[

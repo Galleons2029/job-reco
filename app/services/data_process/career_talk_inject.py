@@ -32,7 +32,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # 读取CSV文件
-df = pd.read_csv("/home/weyon2/DATA/test_data/c_career_talk_job.csv")
+df = pd.read_csv("/home/weyon2/DATA/table_data/jobs/2024-11-29-17-53-37_EXPORT_CSV_16607313_309_0.csv")
 
 
 @retry(
@@ -54,26 +54,18 @@ def batch_update_career_talk(
                 career_talk_id = update['career_talk_id']
 
                 # 查询现有数据
-                search_result = qdrant_client.scroll(
+                search_result = qdrant_client.retrieve(
                     collection_name=collection_name,
-                    scroll_filter=models.Filter(
-                        must=[
-                            models.FieldCondition(
-                                key="publish_id",
-                                match=models.MatchValue(value=publish_id)
-                            ),
-                        ],
-                    ),
-                    with_payload=True,
-                    limit=1
+                    ids=[publish_id],
                 )
 
-                if not search_result[0]:
+                if not search_result:
                     # logger.warning(f"未找到publish_id {publish_id}")
                     continue
 
-                point_id = search_result[0][0].id  # 获取点的ID
-                career_jobs_list = search_result[0][0].payload.get('career_talk', [])
+
+                point_id = search_result[0].id  # 获取点的ID
+                career_jobs_list = search_result[0].payload.get('career_talk', [])
 
                 if career_talk_id not in career_jobs_list:
                     career_jobs_list.append(career_talk_id)
@@ -169,7 +161,7 @@ def main():
 
         process_dataframe_in_batches(
             df=df,
-            collection_name="job_test3",
+            collection_name="job_2024_1129",
             batch_size=50
         )
 

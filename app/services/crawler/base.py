@@ -2,7 +2,7 @@ import time
 from abc import ABC, abstractmethod
 from tempfile import mkdtemp
 
-from app.db.documents import BaseDocument
+from app.db.models.documents import BaseDocument
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
